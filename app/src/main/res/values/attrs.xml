@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="SharedValue" format="integer">
+    </attr>
+    <attr name="SharedValueId" format="reference">
+    </attr>
+    <attr name="themeAccentColor" format="color">
+    </attr>
+    <attr name="themeActivityBackground" format="reference">
+    </attr>
+    <attr name="themeButtonBackground" format="reference">
+    </attr>
+    <attr name="themeButtonTextColor" format="color">
+    </attr>
+    <attr name="themeCardBackground" format="reference">
+    </attr>
+    <attr name="themeSectionBackground" format="reference">
+    </attr>
+    <attr name="themeSectionBorderColor" format="color">
+    </attr>
+    <attr name="themeTextAccent" format="color">
+    </attr>
+</resources>

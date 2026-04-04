@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#d4af37"/>
+            <corners android:radius="8dp"/>
+        </shape>
+    </item>
+    <item
+        android:left="1.5dp"
+        android:top="1.5dp"
+        android:right="1.5dp"
+        android:bottom="1.5dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#fcfaf4"
+                android:endColor="#ddd8c8"
+                android:angle="270"
+                android:type="linear"
+                android:centerColor="#f0ede3"/>
+            <corners android:radius="7dp"/>
+        </shape>
+    </item>
+    <!-- Intensified top gloss -->
+    <item
+        android:left="1.5dp"
+        android:top="1.5dp"
+        android:right="1.5dp"
+        android:bottom="1.5dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#58ffffff"
+                android:endColor="#00000000"
+                android:angle="270"
+                android:type="linear"
+                android:centerColor="#18ffffff"/>
+            <corners android:radius="7dp"/>
+        </shape>
+    </item>
+    <!-- Bottom shadow for depth -->
+    <item
+        android:left="1.5dp"
+        android:top="1.5dp"
+        android:right="1.5dp"
+        android:bottom="1.5dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#00000000"
+                android:endColor="#20000000"
+                android:angle="270"
+                android:type="linear"
+                android:centerColor="#00000000"/>
+            <corners android:radius="7dp"/>
+        </shape>
+    </item>
+    <!-- Specular top stripe highlight -->
+    <item
+        android:left="3dp"
+        android:top="1.5dp"
+        android:right="3dp"
+        android:bottom="0dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#40ffffff"
+                android:endColor="#00ffffff"
+                android:angle="270"
+                android:type="linear"/>
+            <corners android:radius="7dp"/>
+            <size android:height="10dp"/>
+        </shape>
+    </item>
+</layer-list>

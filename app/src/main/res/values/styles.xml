@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MobileInvoiceOCR" parent="@style/Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="android:colorBackground">@color/imperial_obsidian</item>
+        <item name="android:textColorPrimary">@color/imperial_calacatta</item>
+        <item name="android:textColorSecondary">@color/imperial_gold_leaf</item>
+        <item name="android:textColorHint">@color/antique_gold</item>
+        <item name="android:statusBarColor">@color/imperial_obsidian</item>
+        <item name="colorOnBackground">@color/imperial_gold_leaf</item>
+        <item name="colorOnPrimary">@color/imperial_gold_leaf</item>
+        <item name="colorOnSecondary">@color/imperial_obsidian</item>
+        <item name="colorOnSurface">@color/imperial_calacatta</item>
+        <item name="colorPrimary">@color/imperial_patina_iron</item>
+        <item name="colorPrimaryVariant">@color/imperial_obsidian</item>
+        <item name="colorSecondary">@color/imperial_gold_leaf</item>
+        <item name="colorSecondaryVariant">@color/antique_gold</item>
+        <item name="colorSurface">@color/imperial_patina_iron</item>
+        <item name="themeAccentColor">@color/imperial_gold_leaf</item>
+        <item name="themeActivityBackground">@drawable/bg_obsidian_marble</item>
+        <item name="themeButtonBackground">@drawable/button_primary_imperial</item>
+        <item name="themeButtonTextColor">@color/imperial_gold_leaf</item>
+        <item name="themeCardBackground">@drawable/bg_imperial_marble_card</item>
+        <item name="themeSectionBackground">@drawable/bg_imperial_iron_section</item>
+        <item name="themeSectionBorderColor">@color/imperial_gold_leaf</item>
+        <item name="themeTextAccent">@color/imperial_gold_leaf</item>
+    </style>
+    <style name="Theme.MobileInvoiceOCR.Blended" parent="@style/Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="android:colorBackground">@color/imperial_obsidian</item>
+        <item name="android:textColorPrimary">@color/champagne</item>
+        <item name="android:textColorSecondary">@color/imperial_gold_leaf</item>
+        <item name="android:textColorHint">@color/antique_gold</item>
+        <item name="android:statusBarColor">@color/black</item>
+        <item name="colorOnBackground">@color/champagne</item>
+        <item name="colorOnPrimary">@color/imperial_gold_leaf</item>
+        <item name="colorOnSecondary">@color/imperial_obsidian</item>
+        <item name="colorOnSurface">@color/calacatta_dark_text</item>
+        <item name="colorPrimary">@color/imperial_obsidian</item>
+        <item name="colorPrimaryVariant">@color/black</item>
+        <item name="colorSecondary">@color/imperial_gold_leaf</item>
+        <item name="colorSecondaryVariant">@color/antique_gold</item>
+        <item name="colorSurface">@color/calacatta_surface</item>
+        <item name="themeAccentColor">@color/imperial_gold_leaf</item>
+        <item name="themeActivityBackground">@drawable/bg_obsidian_marble</item>
+        <item name="themeButtonBackground">@drawable/button_primary_imperial</item>
+        <item name="themeButtonTextColor">@color/imperial_gold_leaf</item>
+        <item name="themeCardBackground">@drawable/bg_marble_card</item>
+        <item name="themeSectionBackground">@drawable/bg_imperial_iron_section</item>
+        <item name="themeSectionBorderColor">@color/imperial_gold_leaf</item>
+        <item name="themeTextAccent">@color/imperial_gold_leaf</item>
+    </style>
+    <style name="Theme.MobileInvoiceOCR.Blended.Fullscreen" parent="@style/Theme.MobileInvoiceOCR.Blended">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="Theme.MobileInvoiceOCR.Blended.NoActionBar" parent="@style/Theme.MobileInvoiceOCR.Blended">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="Theme.MobileInvoiceOCR.Fullscreen" parent="@style/Theme.MobileInvoiceOCR">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="Theme.MobileInvoiceOCR.LightMarble" parent="@style/Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="android:colorBackground">@color/calacatta_warm</item>
+        <item name="android:textColorPrimary">@color/calacatta_dark_text</item>
+        <item name="android:textColorSecondary">@color/calacatta_warm_mid</item>
+        <item name="android:textColorHint">@color/calacatta_hint</item>
+        <item name="android:statusBarColor">@color/calacatta_dark_text</item>
+        <item name="colorOnBackground">@color/calacatta_dark_text</item>
+        <item name="colorOnPrimary">@color/imperial_gold_leaf</item>
+        <item name="colorOnSecondary">@color/calacatta_dark_text</item>
+        <item name="colorOnSurface">@color/calacatta_dark_text</item>
+        <item name="colorPrimary">@color/calacatta_dark_text</item>
+        <item name="colorPrimaryVariant">@color/imperial_obsidian</item>
+        <item name="colorSecondary">@color/imperial_gold_leaf</item>
+        <item name="colorSecondaryVariant">@color/antique_gold</item>
+        <item name="colorSurface">@color/calacatta_surface</item>
+        <item name="themeAccentColor">@color/imperial_gold_leaf</item>
+        <item name="themeActivityBackground">@drawable/bg_calacatta_marble_bg</item>
+        <item name="themeButtonBackground">@drawable/button_primary_light_marble</item>
+        <item name="themeButtonTextColor">@color/calacatta_dark_text</item>
+        <item name="themeCardBackground">@drawable/bg_marble_card</item>
+        <item name="themeSectionBackground">@drawable/bg_marble_section_light</item>
+        <item name="themeSectionBorderColor">@color/marble_vein</item>
+        <item name="themeTextAccent">@color/calacatta_deep_gold</item>
+    </style>
+    <style name="Theme.MobileInvoiceOCR.LightMarble.Fullscreen" parent="@style/Theme.MobileInvoiceOCR.LightMarble">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="Theme.MobileInvoiceOCR.LightMarble.NoActionBar" parent="@style/Theme.MobileInvoiceOCR.LightMarble">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="Theme.MobileInvoiceOCR.NoActionBar" parent="@style/Theme.MobileInvoiceOCR">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="CardStyle" parent="@style/Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardUseCompatPadding">true</item>
+        <item name="contentPadding">16dp</item>
+    </style>
+    <style name="ButtonStyle" parent="@style/Widget.MaterialComponents.Button">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/themeButtonTextColor</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_margin">8dp</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <!-- Daily Record brand aliases -->
+    <style name="Theme.DailyRecord" parent="Theme.MobileInvoiceOCR" />
+    <style name="Theme.DailyRecord.NoActionBar" parent="Theme.MobileInvoiceOCR.NoActionBar" />
+    <style name="Theme.DailyRecord.Fullscreen" parent="Theme.MobileInvoiceOCR.Fullscreen" />
+    <style name="Theme.DailyRecord.Blended" parent="Theme.MobileInvoiceOCR.Blended" />
+    <style name="Theme.DailyRecord.Blended.NoActionBar" parent="Theme.MobileInvoiceOCR.Blended.NoActionBar" />
+    <style name="Theme.DailyRecord.LightMarble" parent="Theme.MobileInvoiceOCR.LightMarble" />
+    <style name="Theme.DailyRecord.LightMarble.NoActionBar" parent="Theme.MobileInvoiceOCR.LightMarble.NoActionBar" />
+</resources>

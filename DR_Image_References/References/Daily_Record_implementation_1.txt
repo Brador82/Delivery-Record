@@ -1,0 +1,146 @@
+Daily_Record_implementation_1
+
+Implementation System (How to Build the Visual Effects)
+
+You must implement the design using a layered drawable and theme system.
+Do not rely on flat colors alone.
+
+---
+
+1. COLOR USAGE RULES
+
+- Never use flat backgrounds for primary surfaces
+- Always combine:
+  → base color + gradient OR
+  → base color + subtle stroke
+
+- Gold must always use gradients (never flat color)
+
+---
+
+2. BACKGROUND / PANEL SYSTEM
+
+All surfaces should follow this structure:
+
+- Base: dark color (bg_primary / bg_secondary)
+- Overlay: subtle gradient (top highlight → bottom shadow)
+- Optional: thin stroke for edge definition
+
+Use <layer-list> to combine effects.
+
+Example structure:
+- Bottom layer → solid dark base
+- Top layer → gradient for lighting
+
+Goal:
+Create depth using light, not heavy shadows.
+
+---
+
+3. GOLD ELEMENT RULES
+
+Gold is NOT a fill color. It is a lighting material.
+
+Use gold for:
+- strokes (1–2dp)
+- button gradients
+- highlights and accents
+
+Gold must be:
+- gradient (light → primary → deep)
+- slightly desaturated (avoid neon yellow look)
+
+---
+
+4. BUTTON DESIGN
+
+Buttons should feel slightly raised and tactile:
+
+Required:
+- gold gradient background
+- rounded corners (16–20dp)
+- subtle top highlight
+- pressed state (darker gradient)
+
+Use <selector> for pressed states.
+
+Optional:
+- very subtle inner shadow effect using gradient
+
+---
+
+5. DEPTH TECHNIQUE (CRITICAL)
+
+Simulate depth using:
+
+- Top highlight:
+  lighter color at top (highlight_soft)
+
+- Bottom shadow:
+  darker color at bottom (shadow_soft)
+
+- Edge definition:
+  thin stroke or contrast boundary
+
+Avoid:
+- harsh shadows
+- large drop shadows
+- flat surfaces
+
+---
+
+6. CARD / CONTAINER STYLE
+
+Cards should:
+- sit on darker background
+- be slightly lighter than the background
+- have rounded corners (12–16dp)
+- include subtle edge contrast
+
+Optional:
+- gold stroke (very subtle, low alpha)
+
+---
+
+7. DIVIDERS
+
+Avoid solid lines.
+
+Use:
+- very thin gradient lines
+- fade out at edges
+- low contrast
+
+---
+
+8. CONSISTENCY RULE
+
+If a style is created (button, card, panel):
+→ reuse it everywhere via styles.xml
+
+Do NOT create one-off designs.
+
+---
+
+9. LAYOUT SAFETY
+
+- Do NOT restructure layouts
+- Apply visuals via:
+  - styles
+  - backgrounds
+  - theme attributes
+
+If a change requires layout modification:
+→ explain before applying
+
+---
+
+10. QUALITY CHECK
+
+Before final output, verify:
+
+- No flat-looking surfaces
+- Gold is not overused
+- Contrast is strong and readable
+- UI feels smooth, not noisy
+- All elements feel part of the same system

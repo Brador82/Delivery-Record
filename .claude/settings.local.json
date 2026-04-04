@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(adb devices:*)",
+      "Bash(adb -s 53071JEBF08609 uninstall com.mobileinvoice.ocr)",
+      "Bash(adb -s 53071JEBF08609 install \"c:\\\\_WORKSPACE_\\\\PROJECTS\\\\Daily Record\\\\app\\\\build\\\\outputs\\\\apk\\\\debug\\\\app-debug.apk\")"
+    ]
+  }
+}

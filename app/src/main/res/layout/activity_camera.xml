@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/black"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <com.mobileinvoice.ocr.ViewfinderOverlayView
+        android:id="@+id/viewfinderOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <com.google.android.material.button.MaterialButton
+        android:textSize="32sp"
+        android:id="@+id/btnCapture"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginBottom="32dp"
+        android:text="��"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        app:cornerRadius="40dp"/>
+    <ImageButton
+        android:id="@+id/btnClose"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:tint="@android:color/white"
+        android:layout_alignParentTop="true"
+        android:contentDescription="Close"
+        android:layout_alignParentStart="true"/>
+    <ImageButton
+        android:id="@+id/btnToggleAutoCapture"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_camera"
+        android:tint="#d4af37"
+        android:layout_alignParentTop="true"
+        android:contentDescription="Toggle auto-capture"
+        android:layout_alignParentEnd="true"/>
+</RelativeLayout>

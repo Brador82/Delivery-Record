@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:background="#0d0d0d"
+    android:padding="12dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginHorizontal="8dp">
+    <ImageView
+        android:id="@+id/ivExpandArrow"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@android:drawable/arrow_down_float"
+        android:rotation="0"
+        app:tint="#888888"/>
+    <TextView
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#888888"
+        android:id="@+id/tvHeaderTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Completed"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"/>
+    <TextView
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:gravity="center"
+        android:id="@+id/tvCompletedCount"
+        android:background="@drawable/circle_background"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="24dp"
+        android:text="0"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="2dp"/>
+</LinearLayout>

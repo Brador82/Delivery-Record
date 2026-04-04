@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#020509"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#2000b4d8"
+                android:endColor="#00000000"
+                android:angle="130"
+                android:type="linear"
+                android:centerColor="#0800b4d8"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#00000000"
+                android:endColor="#00000000"
+                android:angle="50"
+                android:type="linear"
+                android:centerColor="#1248cae4"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#1a00b4d8"
+                android:endColor="#00000000"
+                android:angle="0"
+                android:type="radial"
+                android:centerX="0.07"
+                android:centerY="0.06"
+                android:gradientRadius="85%p"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#1048cae4"
+                android:endColor="#00000000"
+                android:angle="0"
+                android:type="radial"
+                android:centerX="0.8"
+                android:centerY="0.6"
+                android:gradientRadius="38%p"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#2200b4d8"
+                android:endColor="#00000000"
+                android:angle="270"
+                android:type="linear"
+                android:centerColor="#0800b4d8"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#00000000"
+                android:endColor="#50000000"
+                android:angle="315"
+                android:type="linear"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#18000000"
+                android:endColor="#00000000"
+                android:angle="0"
+                android:type="linear"
+                android:centerColor="#00000000"/>
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#d4af37"/>
+                    <corners android:radius="4dp"/>
+                    <stroke
+                        android:width="2dp"
+                        android:color="#ffd700"/>
+                </shape>
+            </item>
+            <item
+                android:gravity="center"
+                android:drawable="@android:drawable/checkbox_on_background"/>
+        </layer-list>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#2a2a2a"/>
+            <corners android:radius="4dp"/>
+            <stroke
+                android:width="2dp"
+                android:color="#d4af37"/>
+        </shape>
+    </item>
+</selector>

@@ -1,0 +1,34 @@
+# Build artifacts
+*.apk
+*.aab
+*.class
+*.dex
+build/
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local config
+local.properties
+keystore.properties
+
+# Signing
+*.jks
+*.keystore
+
+# JDK (should not be in repo)
+oracleJdk-25/
+
+# Google Drive temp uploads
+.tmp.driveupload/
+build_output.txt
+build_bundle.txt
+public.xml.decompile

@@ -1,0 +1,36 @@
+PaddleOCR Model Setup Instructions
+====================================
+
+This directory needs two ONNX model files for PaddleOCR inference.
+
+Required files:
+  ppocr_det.onnx   - Text detection model (~4MB)
+  ppocr_rec.onnx   - English text recognition model (~7MB)
+  en_dict.txt      - Character dictionary (already included)
+
+Steps to obtain the models:
+
+1. Install paddle2onnx:
+   pip install paddle2onnx paddlepaddle
+
+2. Download PP-OCRv4 models from PaddlePaddle:
+   # Detection model
+   wget https://paddleocr.bj.bcebos.com/PP-OCRv4/english/en_PP-OCRv4_det_infer.tar
+   tar xf en_PP-OCRv4_det_infer.tar
+
+   # Recognition model
+   wget https://paddleocr.bj.bcebos.com/PP-OCRv4/english/en_PP-OCRv4_rec_infer.tar
+   tar xf en_PP-OCRv4_rec_infer.tar
+
+3. Convert to ONNX:
+   paddle2onnx --model_dir en_PP-OCRv4_det_infer \
+     --model_filename inference.pdmodel \
+     --params_filename inference.pdiparams \
+     --save_file ppocr_det.onnx --opset_version 11
+
+   paddle2onnx --model_dir en_PP-OCRv4_rec_infer \
+     --model_filename inference.pdmodel \
+     --params_filename inference.pdiparams \
+     --save_file ppocr_rec.onnx --opset_version 11
+
+4. Copy ppocr_det.onnx and ppocr_rec.onnx into this directory.
