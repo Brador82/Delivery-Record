@@ -64,6 +64,7 @@
         </activity>
         <activity
             android:name="com.mobileinvoice.ocr.InvoiceDetailActivity"
+            android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:parentActivityName="com.mobileinvoice.ocr.MainActivity"/>
         <activity

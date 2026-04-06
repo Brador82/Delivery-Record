@@ -32,8 +32,8 @@ public class OCRProcessorMLKit {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
     private static final Pattern LABELED_INVOICE_PATTERN = Pattern
             .compile("(?i)(?:invoice|order|inv|ref)\\s*[#:.-]?\\s*(\\d{4,8})", 2);
-    // KY013002 / KY413205 style — 2 uppercase letters + 6-8 digits
-    private static final Pattern INVOICE_CODE_PATTERN = Pattern.compile("\\b([A-Z]{2}\\d{6,8})\\b");
+    // KY013002 / MOMO040401 style — 2-6 uppercase letters + 4-10 digits
+    private static final Pattern INVOICE_CODE_PATTERN = Pattern.compile("\\b([A-Z]{2,6}\\d{4,10})\\b");
     private static final Pattern ZIP_CODE_PATTERN = Pattern.compile("\\b\\d{5}(?:-\\d{4})?\\b");
     private static final Pattern ID_PATTERN = Pattern
             .compile("\\(?ID:?\\s*[^)]+\\)|/\\s*Salesperson:?\\s*\\w+|\\([^)]*Salesperson[^)]*\\)", 2);
@@ -325,6 +325,8 @@ public class OCRProcessorMLKit {
         // output stream. Searching only forward would miss them entirely.
         int windowStart = Math.max(0, billToIndex - 10);
         int windowEnd = Math.min(lines.size(), billToIndex + 15);
+        // Name: scan both directions — handles rotated/sideways invoices where the
+        // customer name block appears before the section marker in OCR output order.
         for (int i = windowStart; i < windowEnd; i++) {
             if (i == billToIndex)
                 continue;
@@ -333,9 +335,19 @@ public class OCRProcessorMLKit {
                 continue;
             if (result.customerName.isEmpty() && line.toLowerCase().startsWith("name:")) {
                 result.customerName = extractCustomerName(line);
+                break;
             }
+        }
+        // Address: forward ONLY — the company header also has an "Address:" label
+        // above the BILL TO marker; scanning backward would grab it instead of the
+        // customer's address.
+        for (int i = billToIndex + 1; i < Math.min(billToIndex + 12, lines.size()); i++) {
+            String line = lines.get(i).trim();
+            if (line.isEmpty())
+                continue;
             if (result.address.isEmpty() && line.toLowerCase().startsWith("address:")) {
                 result.address = extractAddress(line);
+                break;
             }
         }
         // Unlabeled fallback: read lines directly after the section marker.
@@ -388,8 +400,17 @@ public class OCRProcessorMLKit {
 
     private String extractCustomerName(String line) {
         String name = line.replaceFirst("(?i)^name:\\s*", "");
-        String name2 = splitConcatenatedName(ID_PATTERN.matcher(name).replaceAll("")
-                .replaceAll("\\s*/\\s*", StringUtils.SPACE).replaceAll("\\s+", StringUtils.SPACE).trim());
+        // Remove ID / Salesperson annotations via pattern
+        name = ID_PATTERN.matcher(name).replaceAll("");
+        // Fallback: if an opening paren remains (OCR split the closing paren onto
+        // the next line so the pattern couldn't match), strip from '(' onward
+        int parenIdx = name.indexOf('(');
+        if (parenIdx > 0) {
+            name = name.substring(0, parenIdx);
+        }
+        String name2 = splitConcatenatedName(
+                name.replaceAll("\\s*/\\s*", StringUtils.SPACE)
+                    .replaceAll("\\s+", StringUtils.SPACE).trim());
         if (!name2.isEmpty()) {
             return toTitleCase(name2);
         }
@@ -460,10 +481,15 @@ public class OCRProcessorMLKit {
             }
         }
         if (invHeaderIdx >= 0) {
-            for (int i = invHeaderIdx + 1; i < Math.min(invHeaderIdx + 5, lines.size()); i++) {
-                Matcher m = INVOICE_CODE_PATTERN.matcher(lines.get(i));
+            // Check the header line itself first (invoice code sometimes on same line)
+            for (int i = invHeaderIdx; i < Math.min(invHeaderIdx + 5, lines.size()); i++) {
+                String candidate = lines.get(i);
+                // Skip lines that are just the word "INVOICE"
+                if (i == invHeaderIdx && candidate.trim().equalsIgnoreCase("INVOICE"))
+                    continue;
+                Matcher m = INVOICE_CODE_PATTERN.matcher(candidate);
                 if (m.find()) {
-                    Log.d(TAG, "Found KY-style invoice number after INVOICE header: " + m.group(1));
+                    Log.d(TAG, "Found invoice code near INVOICE header: " + m.group(1));
                     return m.group(1);
                 }
             }
@@ -537,7 +563,8 @@ public class OCRProcessorMLKit {
             for (int i2 = 0; i2 < lines.size(); i2++) {
                 String line2 = lines.get(i2);
                 for (String appliance : APPLIANCE_TYPES) {
-                    if (!appliance.equals("Other") && line2.toLowerCase().contains(appliance.toLowerCase())) {
+                    if (!appliance.equals("Other") && line2.toLowerCase()
+                            .matches(".*\\b" + appliance.toLowerCase() + "\\b.*")) {
                         boolean exists2 = false;
                         Iterator<DeliveryItem> it2 = foundItems.iterator();
                         while (true) {
