@@ -570,25 +570,6 @@ public class MainActivity extends BaseActivity implements InvoiceAdapter.OnInvoi
         updateRecordCount();
     }
 
-    private void createSampleInvoices(int count) {
-        String[] sampleNames = { "John Smith", "Jane Doe", "Bob Johnson", "Alice Williams", "Mike Brown" };
-        String[] sampleAddresses = { "123 Main St, New York, NY 10001", "456 Oak Ave, Los Angeles, CA 90001",
-                "789 Pine Rd, Chicago, IL 60601", "321 Elm St, Houston, TX 77001", "654 Maple Dr, Phoenix, AZ 85001" };
-        String[] samplePhones = { "555-0101", "555-0102", "555-0103", "555-0104", "555-0105" };
-        for (int i = 0; i < count; i++) {
-            Invoice invoice = new Invoice();
-            invoice.setId(this.invoices.size() + 1);
-            invoice.setInvoiceNumber("INV-" + String.format("%06d", Integer.valueOf(this.invoices.size() + 1)));
-            invoice.setCustomerName(sampleNames[i % sampleNames.length]);
-            invoice.setAddress(sampleAddresses[i % sampleAddresses.length]);
-            invoice.setPhone(samplePhones[i % samplePhones.length]);
-            invoice.setItems("Sample items");
-            this.invoices.add(invoice);
-        }
-        this.invoiceAdapter.setInvoices(this.invoices);
-        updateRecordCount();
-    }
-
     private void updateRecordCount() {
         String countText = this.invoices.isEmpty() ? "No invoices yet" : this.invoices.size() + " invoice(s)";
         this.binding.tvRecordCount.setText(countText);
@@ -767,9 +748,19 @@ public class MainActivity extends BaseActivity implements InvoiceAdapter.OnInvoi
     }
 
     @Override // com.mobileinvoice.ocr.InvoiceAdapter.OnInvoiceClickListener
-    public void onOrderChanged(List<Invoice> reorderedList) {
+    public void onOrderChanged(final List<Invoice> reorderedList) {
         this.invoices.clear();
         this.invoices.addAll(reorderedList);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < reorderedList.size(); i++) {
+                    Invoice invoice = reorderedList.get(i);
+                    invoice.setDeliverySequence(i + 1);
+                    MainActivity.this.database.invoiceDao().update(invoice);
+                }
+            }
+        }).start();
         Toast.makeText(this, "Order updated - Long press to drag invoices", 0).show();
     }
 

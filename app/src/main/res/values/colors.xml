@@ -66,4 +66,9 @@
     <color name="selection_rect">#d4af37</color>
     <color name="warm_gray">#8b8680</color>
     <color name="white">#ffffffff</color>
+    <color name="service_call_red">#ff5252</color>
+    <color name="badge_dim_text">#888888</color>
+    <color name="marble_card_stroke">#1A000000</color>
+    <color name="marble_shadow_spot">#60D4AF37</color>
+    <color name="marble_shadow_ambient">#40D4AF37</color>
 </resources>

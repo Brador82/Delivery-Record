@@ -258,7 +258,6 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
             updateServiceBadges(selected);
             if (InvoiceAdapter.this.listener != null) {
                 InvoiceAdapter.this.listener.onServiceTypeChanged(invoice, selected);
-                return true;
             }
             return true;
         }
@@ -284,7 +283,7 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
                 badge.setTextColor(0xFFD4AF37);
                 badge.setBackgroundResource(R.drawable.badge_background);
             } else {
-                badge.setTextColor(0xFF404040);
+                badge.setTextColor(0xFF888888);
                 badge.setBackgroundResource(R.drawable.badge_service_dim);
             }
         }
@@ -302,15 +301,15 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
             if (AppSettings.THEME_LIGHT_MARBLE.equals(theme) || AppSettings.THEME_MARBLE.equals(theme)
                     || AppSettings.THEME_BLENDED.equals(theme)) {
                 this.binding.cardContent.setBackground(ContextCompat.getDrawable(ctx, MARBLE_CARDS[position % 3]));
-                this.binding.tvInvoiceNumber.setTextColor(-2838729);
-                this.binding.tvCustomerName.setTextColor(-14935528);
-                this.binding.tvAddress.setTextColor(-10859984);
-                this.binding.btnDelete.setImageTintList(ColorStateList.valueOf(-15066598));
-                card.setStrokeColor(436207616);
+                this.binding.tvInvoiceNumber.setTextColor(ContextCompat.getColor(ctx, R.color.rich_gold));
+                this.binding.tvCustomerName.setTextColor(ContextCompat.getColor(ctx, R.color.calacatta_dark_text));
+                this.binding.tvAddress.setTextColor(ContextCompat.getColor(ctx, R.color.calacatta_warm_mid));
+                this.binding.btnDelete.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.marble_dark_text)));
+                card.setStrokeColor(ContextCompat.getColor(ctx, R.color.marble_card_stroke));
                 card.setStrokeWidth(2);
                 if (Build.VERSION.SDK_INT >= 28) {
-                    card.setOutlineSpotShadowColor(1624551223);
-                    card.setOutlineAmbientShadowColor(1087680311);
+                    card.setOutlineSpotShadowColor(ContextCompat.getColor(ctx, R.color.marble_shadow_spot));
+                    card.setOutlineAmbientShadowColor(ContextCompat.getColor(ctx, R.color.marble_shadow_ambient));
                     return;
                 }
                 return;
@@ -318,15 +317,15 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
             TypedValue tv = new TypedValue();
             ctx.getTheme().resolveAttribute(R.attr.themeCardBackground, tv, true);
             this.binding.cardContent.setBackgroundResource(tv.resourceId);
-            this.binding.tvInvoiceNumber.setTextColor(-1);
-            this.binding.tvCustomerName.setTextColor(-1);
-            this.binding.tvAddress.setTextColor(-1710619);
+            this.binding.tvInvoiceNumber.setTextColor(ContextCompat.getColor(ctx, R.color.white));
+            this.binding.tvCustomerName.setTextColor(ContextCompat.getColor(ctx, R.color.white));
+            this.binding.tvAddress.setTextColor(ContextCompat.getColor(ctx, R.color.light_gray));
             card.setStrokeColor(ContextCompat.getColor(ctx, R.color.rich_gold));
             card.setStrokeWidth(2);
             card.setCardElevation(4.0f);
             if (Build.VERSION.SDK_INT >= 28) {
-                card.setOutlineSpotShadowColor(ViewCompat.MEASURED_STATE_MASK);
-                card.setOutlineAmbientShadowColor(ViewCompat.MEASURED_STATE_MASK);
+                card.setOutlineSpotShadowColor(ContextCompat.getColor(ctx, R.color.black));
+                card.setOutlineAmbientShadowColor(ContextCompat.getColor(ctx, R.color.black));
             }
         }
 
@@ -345,7 +344,9 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
         }
 
         private int serviceTypeColor(String type) {
-            return "Service Call".equals(type) ? -44462 : -2838729;
+            return "Service Call".equals(type)
+                    ? ContextCompat.getColor(this.binding.getRoot().getContext(), R.color.service_call_red)
+                    : ContextCompat.getColor(this.binding.getRoot().getContext(), R.color.rich_gold);
         }
     }
 }
