@@ -402,6 +402,14 @@ public class OCRProcessorMLKit {
         String name = line.replaceFirst("(?i)^name:\\s*", "");
         // Remove ID / Salesperson annotations via pattern
         name = ID_PATTERN.matcher(name).replaceAll("");
+        // Truncate at any labeled field boundary (Phone:, Address:, Email:, Cell:, Fax:)
+        name = name.replaceFirst("(?i)\\s+(phone|cell|address|email|fax|zip|city|state)\\s*:.*", "");
+        // Truncate at email address if still present
+        Matcher emailM = EMAIL_PATTERN.matcher(name);
+        if (emailM.find()) name = name.substring(0, emailM.start());
+        // Truncate at phone number if still present
+        Matcher phoneM = PHONE_PATTERN.matcher(name);
+        if (phoneM.find()) name = name.substring(0, phoneM.start());
         // Fallback: if an opening paren remains (OCR split the closing paren onto
         // the next line so the pattern couldn't match), strip from '(' onward
         int parenIdx = name.indexOf('(');

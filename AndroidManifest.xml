@@ -42,7 +42,7 @@
     <uses-permission android:name="com.brador.dailyrecord.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
     <application
         android:theme="@style/Theme.DailyRecord"
-        android:label="Daily Record"
+        android:label="Delivery Record"
         android:icon="@mipmap/ic_launcher"
         android:debuggable="true"
         android:allowBackup="true"

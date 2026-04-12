@@ -299,7 +299,9 @@ public class RouteStopAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             this.tvAddress.setText(invoice.getAddress());
             String items = invoice.getItems();
             if (items != null && !items.isEmpty()) {
-                this.tvStopInfo.setText("Items: " + items);
+                List<DeliveryItem> parsedItems = ItemsHelper.fromJson(items);
+                String names = ItemsHelper.toNamesString(parsedItems);
+                this.tvStopInfo.setText(names.isEmpty() ? "No items specified" : "Items: " + names);
             } else {
                 this.tvStopInfo.setText("No items specified");
             }
