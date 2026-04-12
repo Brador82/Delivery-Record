@@ -14,8 +14,6 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
@@ -43,32 +41,26 @@ public class ManualExtractionActivity extends BaseActivity {
     private InvoiceDatabase database;
     private Bitmap fullBitmap;
     private TextRecognizer recognizer;
-    private static final Pattern MODEL_PATTERN = Pattern.compile("(?i)(?:model|mdl|mod)\\s*(?:no\\.?|num\\.?|#|:)?\\s*[:#]?\\s*([A-Z0-9][A-Z0-9\\-]{3,19})");
-    private static final Pattern SERIAL_PATTERN = Pattern.compile("(?i)(?:s/n|serial|ser\\.?|sn)\\s*[:#]?\\s*([A-Z0-9][A-Z0-9\\-]{3,19})");
+    private static final Pattern MODEL_PATTERN = Pattern
+            .compile("(?i)(?:model|mdl|mod)\\s*(?:no\\.?|num\\.?|#|:)?\\s*[:#]?\\s*([A-Z0-9][A-Z0-9\\-]{3,19})");
+    private static final Pattern SERIAL_PATTERN = Pattern
+            .compile("(?i)(?:s/n|serial|ser\\.?|sn)\\s*[:#]?\\s*([A-Z0-9][A-Z0-9\\-]{3,19})");
     private static final Pattern PHONE_PATTERN = Pattern.compile("\\(?\\d{3}[)\\s.\\-]\\s*\\d{3}[\\s.\\-]\\d{4}");
     private static final Pattern INVOICE_PATTERN = Pattern.compile("(?i)(?:INV|invoice)[\\s#\\-]?[A-Z0-9]{4,}");
     private Map<FieldType, String> extractedValues = new EnumMap(FieldType.class);
-    private Map<FieldType, Chip> fieldChips = new EnumMap(FieldType.class);
     private Map<FieldType, ChipState> chipStates = new EnumMap(FieldType.class);
     private Map<FieldType, ChipState> initialChipStates = new EnumMap(FieldType.class);
     private List<DeliveryItem> extractedItems = new ArrayList();
 
     private enum ChipState {
-        EMPTY,
-        DETECTED,
-        CONFIRMED
+        EMPTY, DETECTED, CONFIRMED
     }
 
     /* JADX INFO: Access modifiers changed from: private */
     enum FieldType {
-        INVOICE_NUMBER("invoiceNumber", "Invoice #"),
-        CUSTOMER_NAME("customerName", "Name"),
-        ADDRESS("address", "Address"),
-        PHONE("phone", "Phone"),
-        NOTES("notes", "Notes"),
-        ITEMS("items", "Items (Add)"),
-        MODEL_NUMBER("modelNumber", "Model #"),
-        SERIAL_NUMBER("serialNumber", "Serial #");
+        INVOICE_NUMBER("invoiceNumber", "Invoice #"), CUSTOMER_NAME("customerName", "Name"),
+        ADDRESS("address", "Address"), PHONE("phone", "Phone"), NOTES("notes", "Notes"), ITEMS("items", "Items (Add)"),
+        MODEL_NUMBER("modelNumber", "Model #"), SERIAL_NUMBER("serialNumber", "Serial #");
 
         final String key;
         final String label;
@@ -79,7 +71,8 @@ public class ManualExtractionActivity extends BaseActivity {
         }
     }
 
-    @Override // androidx.fragment.app.FragmentActivity, androidx.activity.ComponentActivity, androidx.core.app.ComponentActivity, android.app.Activity
+    @Override // androidx.fragment.app.FragmentActivity, androidx.activity.ComponentActivity,
+              // androidx.core.app.ComponentActivity, android.app.Activity
     protected void onCreate(Bundle savedInstanceState) {
         applyAppTheme();
         super.onCreate(savedInstanceState);
@@ -97,20 +90,22 @@ public class ManualExtractionActivity extends BaseActivity {
             this.chipStates.put(f, ChipState.EMPTY);
         }
         loadInvoice(invoiceId);
-        setupFieldChips();
         setupButtons();
-        this.binding.selectionOverlay.setOnTextSelectedListener(new SelectionOverlayView.OnTextSelectedListener() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda0
+        this.binding.selectionOverlay.setOnTextSelectedListener(new SelectionOverlayView.OnTextSelectedListener() { // from
+                                                                                                                    // class:
+                                                                                                                    // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda0
             @Override // com.mobileinvoice.ocr.SelectionOverlayView.OnTextSelectedListener
             public final void onTextSelected(String str, Rect rect) {
                 ManualExtractionActivity.this.lambda$onCreate$0(str, rect);
             }
         });
         this.binding.tvHint.setText("Tap any highlighted text · zoom/pan with two fingers");
-        this.binding.tvResultPreview.setVisibility(8);
+
     }
 
     private void loadInvoice(final int invoiceId) {
-        new Thread(new Runnable() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda3
+        new Thread(new Runnable() { // from class:
+                                    // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda3
             @Override // java.lang.Runnable
             public final void run() {
                 ManualExtractionActivity.this.lambda$loadInvoice$3(invoiceId);
@@ -122,7 +117,8 @@ public class ManualExtractionActivity extends BaseActivity {
     public /* synthetic */ void lambda$loadInvoice$3(int invoiceId) {
         this.currentInvoice = this.database.invoiceDao().getInvoiceByIdSync(invoiceId);
         if (this.currentInvoice == null) {
-            runOnUiThread(new Runnable() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda9
+            runOnUiThread(new Runnable() { // from class:
+                                           // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda9
                 @Override // java.lang.Runnable
                 public final void run() {
                     ManualExtractionActivity.this.lambda$loadInvoice$1();
@@ -134,15 +130,18 @@ public class ManualExtractionActivity extends BaseActivity {
             this.extractedValues.put(FieldType.INVOICE_NUMBER, this.currentInvoice.getInvoiceNumber());
             this.chipStates.put(FieldType.INVOICE_NUMBER, ChipState.CONFIRMED);
         }
-        if (this.currentInvoice.getCustomerName() != null && !this.currentInvoice.getCustomerName().isEmpty() && !"Unknown Customer".equals(this.currentInvoice.getCustomerName())) {
+        if (this.currentInvoice.getCustomerName() != null && !this.currentInvoice.getCustomerName().isEmpty()
+                && !"Unknown Customer".equals(this.currentInvoice.getCustomerName())) {
             this.extractedValues.put(FieldType.CUSTOMER_NAME, this.currentInvoice.getCustomerName());
             this.chipStates.put(FieldType.CUSTOMER_NAME, ChipState.CONFIRMED);
         }
-        if (this.currentInvoice.getAddress() != null && !this.currentInvoice.getAddress().isEmpty() && !"No address found".equals(this.currentInvoice.getAddress())) {
+        if (this.currentInvoice.getAddress() != null && !this.currentInvoice.getAddress().isEmpty()
+                && !"No address found".equals(this.currentInvoice.getAddress())) {
             this.extractedValues.put(FieldType.ADDRESS, this.currentInvoice.getAddress());
             this.chipStates.put(FieldType.ADDRESS, ChipState.CONFIRMED);
         }
-        if (this.currentInvoice.getPhone() != null && !this.currentInvoice.getPhone().isEmpty() && !"No phone".equals(this.currentInvoice.getPhone())) {
+        if (this.currentInvoice.getPhone() != null && !this.currentInvoice.getPhone().isEmpty()
+                && !"No phone".equals(this.currentInvoice.getPhone())) {
             this.extractedValues.put(FieldType.PHONE, this.currentInvoice.getPhone());
             this.chipStates.put(FieldType.PHONE, ChipState.CONFIRMED);
         }
@@ -161,7 +160,8 @@ public class ManualExtractionActivity extends BaseActivity {
         if (imagePath != null && new File(imagePath).exists()) {
             this.fullBitmap = BitmapFactory.decodeFile(imagePath);
         }
-        runOnUiThread(new Runnable() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda10
+        runOnUiThread(new Runnable() { // from class:
+                                       // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda10
             @Override // java.lang.Runnable
             public final void run() {
                 ManualExtractionActivity.this.lambda$loadInvoice$2();
@@ -184,50 +184,11 @@ public class ManualExtractionActivity extends BaseActivity {
             Toast.makeText(this, "Could not load invoice image", 0).show();
             finish();
         }
-        for (Map.Entry<FieldType, ChipState> entry : this.chipStates.entrySet()) {
-            updateChipState(entry.getKey(), entry.getValue());
-        }
-    }
 
-    private void setupFieldChips() {
-        ChipGroup chipGroup = this.binding.chipGroupFields;
-        for (FieldType field : FieldType.values()) {
-            Chip chip = new Chip(this);
-            chip.setText(field.label);
-            chip.setCheckable(false);
-            chip.setClickable(false);
-            chip.setCheckedIconVisible(false);
-            chip.setChipBackgroundColor(null);
-            chip.setBackground(getResources().getDrawable(R.drawable.chip_gradient_bg, null));
-            chip.setTextColor(-11184811);
-            this.fieldChips.put(field, chip);
-            chipGroup.addView(chip);
-        }
     }
 
     private void updateChipState(FieldType field, ChipState state) {
         this.chipStates.put(field, state);
-        Chip chip = this.fieldChips.get(field);
-        if (chip == null) {
-        }
-        chip.setChipBackgroundColor(null);
-        chip.setBackground(getResources().getDrawable(R.drawable.chip_gradient_bg, null));
-        switch (state) {
-            case EMPTY:
-                chip.setTextColor(-11184811);
-                chip.setChipIconVisible(false);
-                break;
-            case DETECTED:
-                chip.setTextColor(-3355444);
-                chip.setChipIconVisible(false);
-                break;
-            case CONFIRMED:
-                chip.setTextColor(-2838729);
-                chip.setChipIconResource(android.R.drawable.checkbox_on_background);
-                chip.setChipIconVisible(true);
-                chip.setChipIconTintResource(R.color.field_completed);
-                break;
-        }
     }
 
     private Set<FieldType> autoDetectFields(String text) {
@@ -244,12 +205,34 @@ public class ManualExtractionActivity extends BaseActivity {
         if (SERIAL_PATTERN.matcher(text).find()) {
             detected.add(FieldType.SERIAL_NUMBER);
         }
-        if ((PHONE_PATTERN.matcher(text).find() || (text.matches("(?s).*\\d{1,5}\\s+[A-Za-z].*") && text.matches("(?si).*\\b(?:St|Ave|Blvd|Dr|Rd|Ln|Way|Ct|Pl|Apt|Suite|Hwy)\\b.*"))) && text.matches("(?s).*\\d{1,5}\\s+[A-Za-z].*") && text.matches("(?si).*\\b(?:St|Ave|Blvd|Dr|Rd|Ln|Way|Ct|Pl|Apt|Suite|Hwy)\\b.*")) {
+        if (text.matches("(?s).*\\d{1,5}\\s+[A-Za-z].*") && text.matches(
+                "(?si).*\\b(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Dr(?:ive)?|Rd|Road|Ln|Lane|Way|Ct|Court|Pl(?:ace)?|Cir(?:cle)?|Hwy|Highway|Pkwy|Apt|Suite|Ste|Unit)\\b.*")) {
             detected.add(FieldType.ADDRESS);
+        }
+        if (!detected.contains(FieldType.ADDRESS) && text.matches(
+                "(?si).*\\b[A-Za-z]+(?:\\s+[A-Za-z]+)*\\s*,?\\s*\\b(?:AL|AK|AZ|AR|CA|CO|CT|DC|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\\s+\\d{5}.*")) {
+            detected.add(FieldType.ADDRESS);
+        }
+        if (detected.isEmpty() && !PHONE_PATTERN.matcher(text).find()) {
+            String cleaned = text.replaceAll("[^A-Za-z\\s'\\-]", "").trim();
+            String[] words = cleaned.split("\\s+");
+            if (words.length >= 1 && words.length <= 4 && cleaned.length() > 3) {
+                boolean allAlpha = true;
+                for (String w : words) {
+                    if (w.isEmpty() || !w.matches("[A-Za-z'\\-]+")) {
+                        allAlpha = false;
+                        break;
+                    }
+                }
+                if (allAlpha) {
+                    detected.add(FieldType.CUSTOMER_NAME);
+                }
+            }
         }
         String lower = text.toLowerCase();
         int i = 0;
-        String[] strArr = {"washer", "dryer", "refrigerator", "dishwasher", "freezer", "range", "washtower", "microwave"};
+        String[] strArr = { "washer", "dryer", "refrigerator", "dishwasher", "freezer", "range", "washtower",
+                "microwave" };
         while (true) {
             if (i >= 8) {
                 break;
@@ -267,12 +250,14 @@ public class ManualExtractionActivity extends BaseActivity {
 
     private void scanFullImageForRegions(Bitmap bitmap) {
         InputImage image = InputImage.fromBitmap(bitmap, 0);
-        this.recognizer.process(image).addOnSuccessListener(new OnSuccessListener() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda7
+        this.recognizer.process(image).addOnSuccessListener(new OnSuccessListener() { // from class:
+                                                                                      // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda7
             @Override // com.google.android.gms.tasks.OnSuccessListener
             public final void onSuccess(Object obj) {
                 ManualExtractionActivity.this.lambda$scanFullImageForRegions$4((Text) obj);
             }
-        }).addOnFailureListener(new OnFailureListener() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda8
+        }).addOnFailureListener(new OnFailureListener() { // from class:
+                                                          // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda8
             @Override // com.google.android.gms.tasks.OnFailureListener
             public final void onFailure(Exception exc) {
                 ManualExtractionActivity.lambda$scanFullImageForRegions$5(exc);
@@ -300,7 +285,10 @@ public class ManualExtractionActivity extends BaseActivity {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    /* renamed from: showPreviewSheet, reason: merged with bridge method [inline-methods] */
+    /*
+     * renamed from: showPreviewSheet, reason: merged with bridge method
+     * [inline-methods]
+     */
     public void lambda$onCreate$0(String extractedText, Rect bitmapRect) {
         Set<FieldType> detected = autoDetectFields(extractedText);
         for (FieldType f : detected) {
@@ -378,7 +366,8 @@ public class ManualExtractionActivity extends BaseActivity {
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
             params.setMargins(0, 3, 0, 3);
             btn.setLayoutParams(params);
-            btn.setOnClickListener(new View.OnClickListener() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda1
+            btn.setOnClickListener(new View.OnClickListener() { // from class:
+                                                                // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda1
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     ManualExtractionActivity.this.lambda$showPreviewSheet$6(etText, field, btn, view);
@@ -399,7 +388,8 @@ public class ManualExtractionActivity extends BaseActivity {
         LinearLayout.LayoutParams doneParams = new LinearLayout.LayoutParams(-1, -2);
         doneParams.setMargins(0, 16, 0, 0);
         done.setLayoutParams(doneParams);
-        done.setOnClickListener(new View.OnClickListener() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda2
+        done.setOnClickListener(new View.OnClickListener() { // from class:
+                                                             // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda2
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 bottomSheetDialog.dismiss();
@@ -430,13 +420,15 @@ public class ManualExtractionActivity extends BaseActivity {
     }
 
     private void setupButtons() {
-        this.binding.btnDone.setOnClickListener(new View.OnClickListener() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda4
+        this.binding.btnDone.setOnClickListener(new View.OnClickListener() { // from class:
+                                                                             // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda4
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ManualExtractionActivity.this.lambda$setupButtons$8(view);
             }
         });
-        this.binding.btnReset.setOnClickListener(new View.OnClickListener() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda5
+        this.binding.btnReset.setOnClickListener(new View.OnClickListener() { // from class:
+                                                                              // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda5
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ManualExtractionActivity.this.lambda$setupButtons$9(view);
@@ -450,42 +442,43 @@ public class ManualExtractionActivity extends BaseActivity {
         this.extractedItems.clear();
         this.binding.selectionOverlay.clearSelections();
         for (FieldType field : FieldType.values()) {
-            ChipState initial = this.initialChipStates.containsKey(field) ? this.initialChipStates.get(field) : ChipState.EMPTY;
+            ChipState initial = this.initialChipStates.containsKey(field) ? this.initialChipStates.get(field)
+                    : ChipState.EMPTY;
             updateChipState(field, initial);
         }
-        this.binding.tvResultPreview.setVisibility(8);
-        this.binding.tvHint.setText("Tap a word to select · Long-press and drag for a range · Zoom/pan with two fingers");
+        this.binding.tvHint.setText("Zoom/pan with two fingers \u00b7 Draw a box to extract text");
         Toast.makeText(this, "Extractions cleared", 0).show();
     }
 
     private void applyTextToField(FieldType field, String text) {
         switch (field.ordinal()) {
-            case 4:
-                String existing = this.extractedValues.get(FieldType.NOTES);
-                this.extractedValues.put(FieldType.NOTES, (existing == null || existing.isEmpty()) ? text : existing + StringUtils.LF + text);
+        case 4:
+            String existing = this.extractedValues.get(FieldType.NOTES);
+            this.extractedValues.put(FieldType.NOTES,
+                    (existing == null || existing.isEmpty()) ? text : existing + StringUtils.LF + text);
+            break;
+        case 5:
+            this.extractedItems.add(new DeliveryItem(text));
+            break;
+        case 6:
+            if (this.extractedItems.isEmpty()) {
+                this.extractedItems.add(new DeliveryItem("Unknown", text, ""));
                 break;
-            case 5:
-                this.extractedItems.add(new DeliveryItem(text));
+            } else {
+                this.extractedItems.get(this.extractedItems.size() - 1).model = text;
                 break;
-            case 6:
-                if (this.extractedItems.isEmpty()) {
-                    this.extractedItems.add(new DeliveryItem("Unknown", text, ""));
-                    break;
-                } else {
-                    this.extractedItems.get(this.extractedItems.size() - 1).model = text;
-                    break;
-                }
-            case 7:
-                if (this.extractedItems.isEmpty()) {
-                    this.extractedItems.add(new DeliveryItem("Unknown", "", text));
-                    break;
-                } else {
-                    this.extractedItems.get(this.extractedItems.size() - 1).serial = text;
-                    break;
-                }
-            default:
-                this.extractedValues.put(field, text);
+            }
+        case 7:
+            if (this.extractedItems.isEmpty()) {
+                this.extractedItems.add(new DeliveryItem("Unknown", "", text));
                 break;
+            } else {
+                this.extractedItems.get(this.extractedItems.size() - 1).serial = text;
+                break;
+            }
+        default:
+            this.extractedValues.put(field, text);
+            break;
         }
     }
 
@@ -520,14 +513,16 @@ public class ManualExtractionActivity extends BaseActivity {
         String val5 = this.extractedValues.get(FieldType.NOTES);
         if (val5 != null) {
             String existingNotes = this.currentInvoice.getNotes();
-            this.currentInvoice.setNotes((existingNotes == null || existingNotes.isEmpty()) ? val5 : existingNotes + StringUtils.LF + val5);
+            this.currentInvoice.setNotes(
+                    (existingNotes == null || existingNotes.isEmpty()) ? val5 : existingNotes + StringUtils.LF + val5);
         }
         if (!this.extractedItems.isEmpty()) {
             List<DeliveryItem> existing = ItemsHelper.fromJson(this.currentInvoice.getItems());
             existing.addAll(this.extractedItems);
             this.currentInvoice.setItems(ItemsHelper.toJson(existing));
         }
-        new Thread(new Runnable() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda6
+        new Thread(new Runnable() { // from class:
+                                    // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda6
             @Override // java.lang.Runnable
             public final void run() {
                 ManualExtractionActivity.this.lambda$saveAndFinish$11();
@@ -538,7 +533,8 @@ public class ManualExtractionActivity extends BaseActivity {
     /* JADX INFO: Access modifiers changed from: private */
     public /* synthetic */ void lambda$saveAndFinish$11() {
         this.database.invoiceDao().update(this.currentInvoice);
-        runOnUiThread(new Runnable() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda11
+        runOnUiThread(new Runnable() { // from class:
+                                       // com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda11
             @Override // java.lang.Runnable
             public final void run() {
                 ManualExtractionActivity.this.lambda$saveAndFinish$10();
@@ -553,7 +549,8 @@ public class ManualExtractionActivity extends BaseActivity {
         finish();
     }
 
-    @Override // androidx.appcompat.app.AppCompatActivity, androidx.fragment.app.FragmentActivity, android.app.Activity
+    @Override // androidx.appcompat.app.AppCompatActivity,
+              // androidx.fragment.app.FragmentActivity, android.app.Activity
     protected void onDestroy() {
         super.onDestroy();
         if (this.recognizer != null) {

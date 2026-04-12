@@ -52,6 +52,18 @@ public class OCRProcessorMLKit {
     // Standalone model numbers without keyword prefix: WEE51550LB, GNE27JYMFS,
     // PGE29BY1FS
     private static final Pattern BARE_MODEL_PATTERN = Pattern.compile("\\b(?!A4L)([A-Z]{2,5}\\d{1,7}[A-Z0-9]{0,7})\\b");
+    // Street address: starts with house number + street suffix
+    private static final Pattern STREET_ADDRESS_PATTERN = Pattern.compile(
+        "^\\d{1,5}\\s+.+\\b(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Dr(?:ive)?|Rd|Road|Ln|Lane|Way|Ct|Court|Pl(?:ace)?|Cir(?:cle)?|Ter(?:r)?(?:ace)?|Pike|Hwy|Highway|Pkwy|Parkway|Apt|Suite|Ste|Unit)\\b",
+        Pattern.CASE_INSENSITIVE);
+    private static final Pattern STREET_NUMBER_START_PATTERN = Pattern.compile("^\\d{1,5}\\s+[A-Za-z]");
+    // City, State ZIP
+    private static final Pattern CITY_STATE_ZIP_PATTERN = Pattern.compile(
+        "(?i)\\b[A-Za-z]+(?:\\s+[A-Za-z]+)*\\s*,?\\s*\\b(?:AL|AK|AZ|AR|CA|CO|CT|DC|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\\s+\\d{5}(?:-\\d{4})?\\b");
+    private static final String[] NON_NAME_WORDS = {"invoice", "order", "date", "total", "bill to", "ship to", "sold to", "deliver",
+        "description", "qty", "quantity", "type:", "model", "serial", "phone", "tel", "fax",
+        "email", "page", "payment", "amount", "tax", "subtotal", "delivery", "www.", ".com", "@",
+        "thank", "terms", "due", "balance", "receipt", "attention", "po box", "p.o."};
 
     // Known appliance brands for make extraction
     private static final String[] KNOWN_BRANDS = {
@@ -191,11 +203,12 @@ public class OCRProcessorMLKit {
         Set<String> storePhoneDigits = collectStorePhones(allLines);
 
         int billToIndex = findCustomerSectionStart(allLines);
-        if (billToIndex == -1) {
-            Log.w(TAG, "Customer section not found, using fallback extraction");
-            extractWithFallback(allLines, storePhoneDigits, result);
-        } else {
+        if (billToIndex >= 0) {
             extractFromBillToSection(allLines, billToIndex, storePhoneDigits, result);
+        }
+        // Always run fallback for any fields still missing
+        if (result.customerName.isEmpty() || result.address.isEmpty() || result.phone.isEmpty()) {
+            extractWithFallback(allLines, storePhoneDigits, result);
         }
 
         result.services = extractGlobalServices(allLines);
@@ -319,54 +332,59 @@ public class OCRProcessorMLKit {
 
     private void extractFromBillToSection(List<String> lines, int billToIndex,
             Set<String> storePhoneDigits, OCRResult result) {
-        // Scan both before AND after the section marker.
-        // For sideways/rotated invoices ML Kit reads blocks in image-top-to-bottom
-        // order, so customer detail lines often appear BEFORE the marker in the OCR
-        // output stream. Searching only forward would miss them entirely.
         int windowStart = Math.max(0, billToIndex - 10);
         int windowEnd = Math.min(lines.size(), billToIndex + 15);
-        // Name: scan both directions — handles rotated/sideways invoices where the
-        // customer name block appears before the section marker in OCR output order.
-        for (int i = windowStart; i < windowEnd; i++) {
-            if (i == billToIndex)
-                continue;
-            String line = lines.get(i).trim();
-            if (line.isEmpty())
-                continue;
-            if (result.customerName.isEmpty() && line.toLowerCase().startsWith("name:")) {
-                result.customerName = extractCustomerName(line);
-                break;
-            }
+
+        // Collect section lines (after marker, up to next section boundary)
+        List<String> sectionLines = new ArrayList<>();
+        String headerLine = lines.get(billToIndex);
+        String afterHeader = headerLine.replaceFirst("(?i).*(?:bill\\s*to|sold\\s*to|deliver\\s*to|customer|client|ship\\s*to|buyer|delivery\\s*address)\\s*[:.]?\\s*", "").trim();
+        if (!afterHeader.isEmpty() && !afterHeader.equalsIgnoreCase(headerLine)) {
+            sectionLines.add(afterHeader);
         }
-        // Address: forward ONLY — the company header also has an "Address:" label
-        // above the BILL TO marker; scanning backward would grab it instead of the
-        // customer's address.
         for (int i = billToIndex + 1; i < Math.min(billToIndex + 12, lines.size()); i++) {
             String line = lines.get(i).trim();
-            if (line.isEmpty())
-                continue;
-            if (result.address.isEmpty() && line.toLowerCase().startsWith("address:")) {
+            if (line.isEmpty()) continue;
+            String lower = line.toLowerCase();
+            if (lower.contains("ship to") || lower.contains("deliver to") ||
+                lower.contains("description") || lower.contains("qty") ||
+                lower.contains("quantity") || lower.contains("type:") ||
+                lower.contains("total") || lower.contains("amount") ||
+                lower.contains("subtotal")) break;
+            sectionLines.add(line);
+        }
+
+        // Pass 1: labeled fields
+        for (String line : sectionLines) {
+            String lower = line.toLowerCase();
+            if (result.customerName.isEmpty() && lower.startsWith("name:")) {
+                result.customerName = extractCustomerName(line);
+            }
+            if (result.address.isEmpty() && lower.startsWith("address:")) {
                 result.address = extractAddress(line);
-                break;
             }
         }
-        // Unlabeled fallback: read lines directly after the section marker.
-        // Covers invoices where name/address appear without "Name:" / "Address:" labels.
-        if (result.customerName.isEmpty() || result.address.isEmpty()) {
-            for (int i = billToIndex + 1; i < Math.min(billToIndex + 8, lines.size()); i++) {
-                String line = lines.get(i).trim();
-                if (line.isEmpty() || isStoreHeaderLine(line))
-                    continue;
-                if (result.customerName.isEmpty() && looksLikePersonName(line)) {
-                    result.customerName = toTitleCase(line);
-                } else if (result.address.isEmpty() && looksLikeStreetAddress(line)) {
-                    result.address = line;
+
+        // Pass 2: heuristic detection for unlabeled fields
+        for (int i = 0; i < sectionLines.size(); i++) {
+            String line = sectionLines.get(i);
+            if (PHONE_PATTERN.matcher(line).find()) continue;
+            String stripped = stripFieldLabel(line);
+            if (result.address.isEmpty() && isStreetAddress(stripped)) {
+                result.address = extractAddress(stripped);
+                // Check next line for city/state/zip
+                if (i + 1 < sectionLines.size() && isCityStateZip(sectionLines.get(i + 1))) {
+                    result.address = result.address + ", " + sectionLines.get(i + 1).trim();
                 }
+            } else if (!result.address.isEmpty() && !hasZipCode(result.address) && isCityStateZip(stripped)) {
+                result.address = result.address + ", " + stripped;
+            } else if (result.customerName.isEmpty() && isLikelyPersonName(stripped)) {
+                result.customerName = toTitleCase(stripped);
             }
         }
+
         // Phone: dedicate a separate pass with store-phone suppression
         assignPhones(lines, windowStart, windowEnd, storePhoneDigits, result);
-        // If still no phone, widen scan to whole document
         if (result.phone.isEmpty()) {
             assignPhones(lines, 0, lines.size(), storePhoneDigits, result);
         }
@@ -382,14 +400,41 @@ public class OCRProcessorMLKit {
                 result.address = extractAddress(line);
             }
         }
-        // Raw address heuristic — skip company header (first 8 lines), require zip code
+        // Street address heuristic — find an actual street address pattern
         if (result.address.isEmpty()) {
-            int scanStart = Math.min(8, lines.size());
-            for (int i = scanStart; i < lines.size(); i++) {
+            for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i);
-                if (line.matches(".*\\d+\\s+[A-Z].*") && line.length() > 10
-                        && ZIP_CODE_PATTERN.matcher(line).find()) {
+                if (isStreetAddress(line)) {
                     result.address = extractAddress(line);
+                    if (i + 1 < lines.size() && isCityStateZip(lines.get(i + 1))) {
+                        result.address = result.address + ", " + lines.get(i + 1).trim();
+                    }
+                    Log.d(TAG, "Fallback found address: " + result.address);
+                    break;
+                }
+            }
+        }
+        // City/state/zip fallback — search backwards for street line
+        if (result.address.isEmpty()) {
+            for (int i = 0; i < lines.size(); i++) {
+                if (isCityStateZip(lines.get(i))) {
+                    result.address = lines.get(i).trim();
+                    if (i > 0 && STREET_NUMBER_START_PATTERN.matcher(lines.get(i - 1)).find()) {
+                        result.address = lines.get(i - 1).trim() + ", " + result.address;
+                    }
+                    Log.d(TAG, "Fallback found address via city/state/zip: " + result.address);
+                    break;
+                }
+            }
+        }
+        // Name heuristic — find first name-like line
+        if (result.customerName.isEmpty()) {
+            for (String line : lines) {
+                String stripped = stripFieldLabel(line);
+                if (isLikelyPersonName(stripped) && !stripped.equals(result.address) &&
+                        !result.address.contains(stripped)) {
+                    result.customerName = toTitleCase(stripped);
+                    Log.d(TAG, "Fallback found name: " + result.customerName);
                     break;
                 }
             }
@@ -727,17 +772,45 @@ public class OCRProcessorMLKit {
         return false;
     }
 
-    /** True if the line looks like a person name: has a space, no digits, mixed case, reasonable length. */
-    private boolean looksLikePersonName(String line) {
-        return !line.matches(".*\\d.*")
-                && line.contains(" ")
-                && line.length() >= 4 && line.length() <= 50
-                && !line.toUpperCase().equals(line);
+    /** True if the line looks like a street address with a recognizable suffix. */
+    private boolean isStreetAddress(String line) {
+        if (line.isEmpty() || !Character.isDigit(line.charAt(0))) return false;
+        return STREET_ADDRESS_PATTERN.matcher(line).find() ||
+               (STREET_NUMBER_START_PATTERN.matcher(line).find() && line.length() > 10);
     }
 
-    /** True if the line looks like a street address: starts with digits followed by letters. */
-    private boolean looksLikeStreetAddress(String line) {
-        return line.matches("\\d+\\s+[A-Za-z].*") && line.length() > 8;
+    private boolean isCityStateZip(String line) {
+        return CITY_STATE_ZIP_PATTERN.matcher(line).find();
+    }
+
+    private boolean hasZipCode(String text) {
+        return ZIP_CODE_PATTERN.matcher(text).find();
+    }
+
+    /** True if the line looks like a person name: mostly alpha, 1-5 words, no numbers/addresses/business terms. */
+    private boolean isLikelyPersonName(String line) {
+        if (line.isEmpty() || Character.isDigit(line.charAt(0))) return false;
+        if (PHONE_PATTERN.matcher(line).find()) return false;
+        if (isCityStateZip(line)) return false;
+        if (isStreetAddress(line)) return false;
+        if (isStoreHeaderLine(line)) return false;
+        String lower = line.toLowerCase();
+        for (String nope : NON_NAME_WORDS) {
+            if (lower.contains(nope)) return false;
+        }
+        String cleaned = line.replaceAll("[^A-Za-z\\s'\\-]", "").trim();
+        String[] words = cleaned.split("\\s+");
+        if (words.length < 1 || words.length > 5) return false;
+        if (cleaned.isEmpty()) return false;
+        int alphaCount = 0;
+        for (char c : line.toCharArray()) {
+            if (Character.isLetter(c) || c == ' ' || c == '\'' || c == '-') alphaCount++;
+        }
+        return alphaCount > line.length() * 0.7;
+    }
+
+    private String stripFieldLabel(String line) {
+        return line.replaceFirst("(?i)^(?:name|customer|address|addr|phone|tel|fax|email|sold to|bill to|deliver(?:y)?\\s*(?:to|address)?|ship to)\\s*[:.]?\\s*", "").trim();
     }
 
     private int findLineContaining(List<String> lines, String searchText) {
