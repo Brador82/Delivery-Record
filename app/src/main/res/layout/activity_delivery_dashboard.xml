@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#f5f5f5"
+    android:background="?attr/themeActivityBackground"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <com.google.android.material.appbar.AppBarLayout
@@ -9,14 +9,16 @@
         android:layout_height="wrap_content">
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
-            android:background="@color/primary"
+            android:background="?attr/themeActivityBackground"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            app:titleTextColor="@color/gold"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            app:cardBackgroundColor="@color/dark_charcoal"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp">
             <LinearLayout
@@ -40,7 +42,7 @@
                         android:text="0"/>
                     <TextView
                         android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="@color/warm_gray"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Today"/>
@@ -61,7 +63,7 @@
                         android:text="0"/>
                     <TextView
                         android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="@color/warm_gray"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Pending"/>
@@ -82,7 +84,7 @@
                         android:text="0"/>
                     <TextView
                         android:textSize="14sp"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="@color/warm_gray"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Delivered"/>
@@ -162,19 +164,19 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp"
                     android:src="@drawable/ic_delivery_truck"
-                    android:tint="@android:color/darker_gray"
+                    android:tint="@color/warm_gray"
                     android:alpha="0.3"/>
                 <TextView
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="@color/warm_gray"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
                     android:text="No deliveries yet"/>
                 <TextView
                     android:textSize="16sp"
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="@color/warm_gray"
                     android:gravity="center"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

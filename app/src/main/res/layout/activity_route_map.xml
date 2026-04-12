@@ -116,15 +116,15 @@
     <LinearLayout
         android:orientation="vertical"
         android:id="@+id/stopsListContainer"
-        android:background="@android:color/white"
+        android:background="@color/dark_charcoal"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
         <TextView
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
-            android:background="#f5f5f5"
+            android:textColor="@color/gold"
+            android:background="@color/charcoal"
             android:padding="12dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -138,7 +138,7 @@
             android:layout_weight="1"/>
         <LinearLayout
             android:orientation="horizontal"
-            android:background="#f5f5f5"
+            android:background="@color/charcoal"
             android:paddingTop="12dp"
             android:paddingBottom="56dp"
             android:layout_width="match_parent"
@@ -150,25 +150,25 @@
             <Button
                 android:enabled="false"
                 android:textStyle="bold"
-                android:textColor="@android:color/white"
+                android:textColor="@color/rich_black"
                 android:id="@+id/btnStartNavigation"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:text="Start Navigation"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                android:backgroundTint="#4caf50"/>
+                android:backgroundTint="@color/rich_gold"/>
             <Button
                 android:enabled="false"
                 android:textStyle="bold"
-                android:textColor="@android:color/white"
+                android:textColor="@color/gold"
                 android:id="@+id/btnReorderList"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:text="Apply Changes"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:backgroundTint="#2196f3"/>
+                android:backgroundTint="@color/imperial_patina_iron"/>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

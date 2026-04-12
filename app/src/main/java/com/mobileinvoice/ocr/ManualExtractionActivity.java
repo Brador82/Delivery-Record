@@ -285,9 +285,11 @@ public class ManualExtractionActivity extends BaseActivity {
         List<PaddleOCREngine.TextRegion> regions = new ArrayList<>();
         for (Text.TextBlock block : visionText.getTextBlocks()) {
             for (Text.Line line : block.getLines()) {
-                Rect box = line.getBoundingBox();
-                if (box != null && !line.getText().trim().isEmpty()) {
-                    regions.add(new PaddleOCREngine.TextRegion(line.getText().trim(), box));
+                for (Text.Element element : line.getElements()) {
+                    Rect box = element.getBoundingBox();
+                    if (box != null && !element.getText().trim().isEmpty()) {
+                        regions.add(new PaddleOCREngine.TextRegion(element.getText().trim(), box));
+                    }
                 }
             }
         }
@@ -452,7 +454,7 @@ public class ManualExtractionActivity extends BaseActivity {
             updateChipState(field, initial);
         }
         this.binding.tvResultPreview.setVisibility(8);
-        this.binding.tvHint.setText("Zoom/pan with two fingers · Draw a box to extract text");
+        this.binding.tvHint.setText("Tap a word to select · Long-press and drag for a range · Zoom/pan with two fingers");
         Toast.makeText(this, "Extractions cleared", 0).show();
     }
 

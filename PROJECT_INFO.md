@@ -4,7 +4,7 @@
 - **App Name**: Daily Record
 - **Application ID**: com.brador.dailyrecord
 - **Internal Package**: com.mobileinvoice.ocr
-- **Version**: 1.0.0 (versionCode 135)
+- **Version**: 2.0.0 (versionCode 200)
 - **Origin**: Forked from Mobile Invoice Assistant v1.3.4
 - **Min SDK**: 26 (Android 8.0)
 - **Target SDK**: 35 (Android 15)

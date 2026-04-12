@@ -16,8 +16,8 @@ android {
         applicationId "com.brador.dailyrecord"
         minSdk 26
         targetSdk 35
-        versionCode 135
-        versionName "1.0.0"
+        versionCode 200
+        versionName "2.0.0"
     }
 
     signingConfigs {
@@ -181,5 +181,8 @@ dependencies {
     implementation 'com.google.apis:google-api-services-drive:v3-rev20241027-2.0.0'
 
     // Firebase / datatransport (transitive through ML Kit)
+    // Force backend-cct to 3.x to match transport-runtime:3.3.0 — otherwise the 2.x backend
+    // calls Logging.i(String,String) which was removed in the 3.x runtime, causing a fatal crash.
+    implementation 'com.google.android.datatransport:transport-backend-cct:3.3.0'
     implementation 'com.google.android.datatransport:transport-runtime:3.3.0'
 }

@@ -7,11 +7,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.core.content.ContextCompat;
@@ -103,8 +101,13 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
 
         void bind(final Invoice invoice, int position) {
             applyThemeStyling(position);
-            this.binding.tvInvoiceNumber.setText(
-                    invoice.getInvoiceNumber() != null ? invoice.getInvoiceNumber() : "INV-" + invoice.getId());
+            int seq = invoice.getDeliverySequence();
+            if (seq > 0) {
+                this.binding.tvStopNumber.setText("#" + seq);
+                this.binding.tvStopNumber.setVisibility(View.VISIBLE);
+            } else {
+                this.binding.tvStopNumber.setVisibility(View.GONE);
+            }
             this.binding.tvCustomerName
                     .setText(invoice.getCustomerName() != null ? invoice.getCustomerName() : "Unknown Customer");
             String address = invoice.getAddress() != null ? invoice.getAddress() : "No address";
@@ -155,15 +158,18 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
                 }
             });
             String serviceType = invoice.getServiceType();
-            this.binding.tvServiceType.setText(abbrevServiceType(serviceType) + " ▾");
-            this.binding.tvServiceType.setTextColor(serviceTypeColor(serviceType));
             updateServiceBadges(serviceType);
-            this.binding.tvServiceType.setOnClickListener(new View.OnClickListener() { // from class:
-                                                                                       // com.mobileinvoice.ocr.InvoiceAdapter$InvoiceViewHolder$$ExternalSyntheticLambda6
-                @Override // android.view.View.OnClickListener
-                public void onClick(View view) {
-                    InvoiceAdapter.InvoiceViewHolder.this.lambda$bind$7(invoice, view);
-                }
+            this.binding.tvBadgeDelivery.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { toggleBadge(invoice, "delivery"); }
+            });
+            this.binding.tvBadgeInstall.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { toggleBadge(invoice, "install"); }
+            });
+            this.binding.tvBadgeHaulAway.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { toggleBadge(invoice, "haul"); }
+            });
+            this.binding.tvBadgeService.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { toggleBadge(invoice, "service"); }
             });
             // Grey out completed deliveries as a visual aid
             applyCompletedOverlay(invoice.isCompleted());
@@ -229,39 +235,6 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$bind$7(final Invoice invoice, View v) {
-            PopupMenu popup = new PopupMenu(v.getContext(), v);
-            popup.getMenu().add(0, 0, 0, "Delivery");
-            popup.getMenu().add(0, 1, 1, "Delivery and Install");
-            popup.getMenu().add(0, 2, 2, "Delivery/Haul-Away");
-            popup.getMenu().add(0, 3, 3, "Delivery/Install/Haul-Away");
-            popup.getMenu().add(0, 4, 4, "Service Call");
-            popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() { // from class:
-                                                                                       // com.mobileinvoice.ocr.InvoiceAdapter$InvoiceViewHolder$$ExternalSyntheticLambda7
-                @Override // android.widget.PopupMenu.OnMenuItemClickListener
-                public boolean onMenuItemClick(MenuItem menuItem) {
-                    boolean lambda$bind$6;
-                    lambda$bind$6 = InvoiceAdapter.InvoiceViewHolder.this.lambda$bind$6(invoice, menuItem);
-                    return lambda$bind$6;
-                }
-            });
-            popup.show();
-        }
-
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ boolean lambda$bind$6(Invoice invoice, MenuItem item) {
-            String selected = item.getTitle().toString();
-            invoice.setServiceType(selected);
-            this.binding.tvServiceType.setText(abbrevServiceType(selected) + " ▾");
-            this.binding.tvServiceType.setTextColor(serviceTypeColor(selected));
-            updateServiceBadges(selected);
-            if (InvoiceAdapter.this.listener != null) {
-                InvoiceAdapter.this.listener.onServiceTypeChanged(invoice, selected);
-            }
-            return true;
-        }
-
         private void updateServiceBadges(String serviceType) {
             boolean isDelivery = serviceType == null || "Delivery".equals(serviceType)
                     || "Delivery and Install".equals(serviceType)
@@ -276,6 +249,39 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
             setServiceBadge(this.binding.tvBadgeInstall, hasInstall);
             setServiceBadge(this.binding.tvBadgeHaulAway, hasHaul);
             setServiceBadge(this.binding.tvBadgeService, hasService);
+        }
+
+        private void toggleBadge(Invoice invoice, String flag) {
+            String current = invoice.getServiceType();
+            boolean hasDelivery = current == null || "Delivery".equals(current)
+                    || "Delivery and Install".equals(current)
+                    || "Delivery/Haul-Away".equals(current)
+                    || "Delivery/Install/Haul-Away".equals(current);
+            boolean hasInstall = "Delivery and Install".equals(current)
+                    || "Delivery/Install/Haul-Away".equals(current);
+            boolean hasHaul = "Delivery/Haul-Away".equals(current)
+                    || "Delivery/Install/Haul-Away".equals(current);
+            boolean hasService = "Service Call".equals(current);
+            switch (flag) {
+                case "delivery": hasDelivery = !hasDelivery; break;
+                case "install":  hasInstall = !hasInstall; break;
+                case "haul":     hasHaul = !hasHaul; break;
+                case "service":  hasService = !hasService; break;
+            }
+            String newType = computeServiceType(hasDelivery, hasInstall, hasHaul, hasService);
+            invoice.setServiceType(newType);
+            updateServiceBadges(newType);
+            if (InvoiceAdapter.this.listener != null) {
+                InvoiceAdapter.this.listener.onServiceTypeChanged(invoice, newType);
+            }
+        }
+
+        private String computeServiceType(boolean delivery, boolean install, boolean haul, boolean service) {
+            if (service) return "Service Call";
+            if (delivery && install && haul) return "Delivery/Install/Haul-Away";
+            if (delivery && haul) return "Delivery/Haul-Away";
+            if (delivery && install) return "Delivery and Install";
+            return "Delivery";
         }
 
         private void setServiceBadge(TextView badge, boolean active) {
@@ -301,8 +307,7 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
             if (AppSettings.THEME_LIGHT_MARBLE.equals(theme) || AppSettings.THEME_MARBLE.equals(theme)
                     || AppSettings.THEME_BLENDED.equals(theme)) {
                 this.binding.cardContent.setBackground(ContextCompat.getDrawable(ctx, MARBLE_CARDS[position % 3]));
-                this.binding.tvInvoiceNumber.setTextColor(ContextCompat.getColor(ctx, R.color.rich_gold));
-                this.binding.tvCustomerName.setTextColor(ContextCompat.getColor(ctx, R.color.calacatta_dark_text));
+                this.binding.tvCustomerName.setTextColor(ContextCompat.getColor(ctx, R.color.rich_gold));
                 this.binding.tvAddress.setTextColor(ContextCompat.getColor(ctx, R.color.calacatta_warm_mid));
                 this.binding.btnDelete.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.marble_dark_text)));
                 card.setStrokeColor(ContextCompat.getColor(ctx, R.color.marble_card_stroke));
@@ -317,7 +322,6 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
             TypedValue tv = new TypedValue();
             ctx.getTheme().resolveAttribute(R.attr.themeCardBackground, tv, true);
             this.binding.cardContent.setBackgroundResource(tv.resourceId);
-            this.binding.tvInvoiceNumber.setTextColor(ContextCompat.getColor(ctx, R.color.white));
             this.binding.tvCustomerName.setTextColor(ContextCompat.getColor(ctx, R.color.white));
             this.binding.tvAddress.setTextColor(ContextCompat.getColor(ctx, R.color.light_gray));
             card.setStrokeColor(ContextCompat.getColor(ctx, R.color.rich_gold));
@@ -329,24 +333,5 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.InvoiceV
             }
         }
 
-        private String abbrevServiceType(String type) {
-            if (type == null || "Delivery".equals(type))
-                return "Delivery";
-            if ("Delivery and Install".equals(type))
-                return "Del/Install";
-            if ("Delivery/Haul-Away".equals(type))
-                return "Del/Haul";
-            if ("Delivery/Install/Haul-Away".equals(type))
-                return "Del/Inst/HA";
-            if ("Service Call".equals(type))
-                return "Service";
-            return type;
-        }
-
-        private int serviceTypeColor(String type) {
-            return "Service Call".equals(type)
-                    ? ContextCompat.getColor(this.binding.getRoot().getContext(), R.color.service_call_red)
-                    : ContextCompat.getColor(this.binding.getRoot().getContext(), R.color.rich_gold);
-        }
     }
 }

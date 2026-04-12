@@ -95,6 +95,8 @@
         </com.google.android.material.textfield.TextInputLayout>
         <TextView
             android:textSize="16sp"
+            android:textColor="@color/gold"
+            android:textStyle="bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -102,15 +104,18 @@
             android:text="@string/items"/>
         <TextView
             android:id="@+id/tvSelectedItems"
-            android:background="@android:drawable/edit_text"
+            android:background="@drawable/bg_imperial_marble_card"
             android:padding="12dp"
             android:focusable="true"
             android:clickable="true"
+            android:textColor="?android:attr/textColorPrimary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/select_items"/>
         <TextView
             android:textSize="16sp"
+            android:textColor="@color/gold"
+            android:textStyle="bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -122,7 +127,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <FrameLayout
-                android:background="@android:color/darker_gray"
+                android:background="@color/charcoal"
                 android:layout_width="0dp"
                 android:layout_height="200dp"
                 android:layout_weight="1">
@@ -135,7 +140,7 @@
                     android:contentDescription="POD 1"/>
             </FrameLayout>
             <FrameLayout
-                android:background="@android:color/darker_gray"
+                android:background="@color/charcoal"
                 android:layout_width="0dp"
                 android:layout_height="200dp"
                 android:layout_weight="1">
@@ -148,7 +153,7 @@
                     android:contentDescription="POD 2"/>
             </FrameLayout>
             <FrameLayout
-                android:background="@android:color/darker_gray"
+                android:background="@color/charcoal"
                 android:layout_width="0dp"
                 android:layout_height="200dp"
                 android:layout_weight="1">
@@ -168,7 +173,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp">
             <FrameLayout
-                android:background="@android:color/darker_gray"
+                android:background="@color/charcoal"
                 android:layout_width="0dp"
                 android:layout_height="200dp"
                 android:layout_weight="1">
@@ -181,7 +186,7 @@
                     android:contentDescription="POD 4"/>
             </FrameLayout>
             <FrameLayout
-                android:background="@android:color/darker_gray"
+                android:background="@color/charcoal"
                 android:layout_width="0dp"
                 android:layout_height="200dp"
                 android:layout_weight="1">
@@ -194,7 +199,7 @@
                     android:contentDescription="POD 5"/>
             </FrameLayout>
             <FrameLayout
-                android:background="@android:color/darker_gray"
+                android:background="@color/charcoal"
                 android:layout_width="0dp"
                 android:layout_height="200dp"
                 android:layout_weight="1">
@@ -212,16 +217,23 @@
             android:id="@+id/btnCapturePOD"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/add_pod"/>
+            android:text="@string/add_pod"
+            android:textColor="?attr/themeButtonTextColor"
+            android:background="?attr/themeButtonBackground"
+            app:backgroundTint="@null"
+            app:icon="@android:drawable/ic_menu_camera"
+            app:iconTint="@color/gold"/>
         <TextView
             android:textSize="16sp"
+            android:textColor="@color/gold"
+            android:textStyle="bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
             android:text="@string/signature"/>
         <FrameLayout
-            android:background="@android:color/darker_gray"
+            android:background="@color/charcoal"
             android:layout_width="match_parent"
             android:layout_height="150dp">
             <ImageView
@@ -236,7 +248,12 @@
                 android:id="@+id/btnCaptureSignature"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/add_signature"/>
+                android:text="@string/add_signature"
+                android:textColor="?attr/themeButtonTextColor"
+                android:background="?attr/themeButtonBackground"
+                app:backgroundTint="@null"
+                app:icon="@android:drawable/ic_menu_edit"
+                app:iconTint="@color/gold"/>
         </FrameLayout>
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -253,9 +270,16 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="56dp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="64dp"
-            android:text="Save Changes"/>
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:text="Save Changes"
+            android:textColor="?attr/themeButtonTextColor"
+            android:background="?attr/themeButtonBackground"
+            app:backgroundTint="@null"
+            app:icon="@android:drawable/ic_menu_save"
+            app:iconTint="@color/gold"/>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

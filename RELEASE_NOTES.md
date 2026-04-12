@@ -1,4 +1,78 @@
-# Mobile Invoice Assistant — Release Notes
+# Delivery Record — Release Notes
+
+## Version 2.0.0 — "Delivery Record 2.0"
+**Release Date:** April 12, 2026
+**Branch:** `Trunk`
+
+---
+
+### Highlights
+
+Major overhaul of the OCR extraction engine. The app no longer requires field labels like "Name:", "Address:", or "Phone:" on invoices to extract customer data. Field detection is now heuristic-based, working on any standard invoice layout. The manual extraction UI has been streamlined — the chip banner and assign dropdown are removed.
+
+---
+
+### OCR Engine — Label-Free Field Detection
+
+#### Address Detection (no "Address:" label required)
+- **Street address pattern matching** — Recognizes lines starting with a street number followed by common street suffixes (St, Ave, Blvd, Dr, Rd, Ln, Way, Ct, Pl, Cir, Hwy, Pkwy, Apt, Suite, Ste, Unit, and their full-word variants).
+- **City/State/ZIP detection** — Matches any US city + two-letter state abbreviation + 5-digit (or 5+4) ZIP code pattern. All 50 states + DC supported.
+- **Multi-line address assembly** — When a street line is followed by a city/state/zip line, they're automatically combined into one address.
+- **Reverse lookup** — If only a city/state/zip line is found, checks the preceding line for a street number to build the full address.
+
+#### Name Detection (no "Name:" label required)
+- **Person name heuristic** — Identifies lines that are mostly alphabetic (1-5 words, >70% letters), not a phone number, not an address, and don't contain business terms (invoice, total, qty, description, etc.).
+- **Exclusion list** — 30+ non-name keywords filtered out: invoice, order, date, total, description, qty, model, serial, phone, email, payment, tax, subtotal, etc.
+- **Positional awareness** — In bill-to sections, name is extracted from the first line that isn't an address or phone number.
+
+#### Section Header Detection
+- **Expanded headers** — Now searches for: "Bill To", "Sold To", "Deliver To", "Customer", "Client", "Ship To", "Buyer" (previously only "BILL TO").
+- **Inline header content** — Text on the same line as a header (e.g., "Bill To: John Smith") is now captured.
+- **Section boundary detection** — Stops reading section lines when hitting keywords like "Ship To", "Description", "Qty", "Total", "Amount", "Item", "Subtotal".
+
+#### Label Stripping
+- When labels ARE present (Name:, Address:, Phone:, Tel:, etc.), they're stripped cleanly before extraction. Both labeled and unlabeled invoices work.
+
+#### Always-Fallback Strategy
+- OCR now ALWAYS runs the heuristic fallback for any fields not filled by section parsing, instead of only falling back when no section header was found.
+
+---
+
+### Manual Extraction UI
+
+#### Removed
+- **Chip banner** — The gray `HorizontalScrollView` with field chips (Invoice #, Name, Address, Phone, etc.) and green checkbox icons is removed.
+- **Assign dropdown** — The `Assign ▼` button and inline preview `EditText` are removed.
+
+#### Improved Auto-Detection (Bottom Sheet)
+- **Address detection** — Now recognizes street address patterns and city/state/zip lines without requiring both simultaneously.
+- **Name detection** — New heuristic flags text as a likely person name when it's 1-4 alphabetic words with no numbers, addresses, or business terms.
+- Bottom sheet field assignment buttons still highlight auto-detected fields for one-tap assignment.
+
+---
+
+### Files Changed
+
+**OCR Engine:**
+- `OCRProcessorMLKit.java` — New address/name/section patterns; rewritten `extractFromBillToSection`, `extractWithFallback`; new helpers: `isStreetAddress`, `isCityStateZip`, `isLikelyPersonName`, `stripFieldLabel`, `findSectionHeader`
+
+**Manual Extraction:**
+- `ManualExtractionActivity.java` — Removed chip UI code, improved `autoDetectFields` with address and name heuristics
+- `activity_manual_extraction.xml` — Removed `layoutPreview`, `chipGroupFields`, `btnAssignField`, `tvResultPreview`
+
+**Build:**
+- `app/build.gradle` — versionCode 200, versionName "2.0.0"
+- `PROJECT_INFO.md` — Updated version
+
+---
+
+### Technical Notes
+- **Min SDK:** 26 (Android 8.0)
+- **Target SDK:** 35 (Android 15)
+- **OCR Engine:** Google ML Kit Text Recognition
+- **Build:** Gradle, AGP 9.1.0, Java 17
+
+---
 
 ## Trunk — 2026-04-04
 

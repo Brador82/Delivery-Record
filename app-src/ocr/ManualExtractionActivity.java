@@ -14,8 +14,6 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
@@ -48,7 +46,6 @@ public class ManualExtractionActivity extends BaseActivity {
     private static final Pattern PHONE_PATTERN = Pattern.compile("\\(?\\d{3}[)\\s.\\-]\\s*\\d{3}[\\s.\\-]\\d{4}");
     private static final Pattern INVOICE_PATTERN = Pattern.compile("(?i)(?:INV|invoice)[\\s#\\-]?[A-Z0-9]{4,}");
     private Map<FieldType, String> extractedValues = new EnumMap(FieldType.class);
-    private Map<FieldType, Chip> fieldChips = new EnumMap(FieldType.class);
     private Map<FieldType, ChipState> chipStates = new EnumMap(FieldType.class);
     private Map<FieldType, ChipState> initialChipStates = new EnumMap(FieldType.class);
     private List<DeliveryItem> extractedItems = new ArrayList();
@@ -97,7 +94,6 @@ public class ManualExtractionActivity extends BaseActivity {
             this.chipStates.put(f, ChipState.EMPTY);
         }
         loadInvoice(invoiceId);
-        setupFieldChips();
         setupButtons();
         this.binding.selectionOverlay.setOnTextSelectedListener(new SelectionOverlayView.OnTextSelectedListener() { // from class: com.mobileinvoice.ocr.ManualExtractionActivity$$ExternalSyntheticLambda0
             @Override // com.mobileinvoice.ocr.SelectionOverlayView.OnTextSelectedListener
@@ -106,7 +102,7 @@ public class ManualExtractionActivity extends BaseActivity {
             }
         });
         this.binding.tvHint.setText("Tap any highlighted text · zoom/pan with two fingers");
-        this.binding.tvResultPreview.setVisibility(8);
+
     }
 
     private void loadInvoice(final int invoiceId) {
@@ -184,50 +180,11 @@ public class ManualExtractionActivity extends BaseActivity {
             Toast.makeText(this, "Could not load invoice image", 0).show();
             finish();
         }
-        for (Map.Entry<FieldType, ChipState> entry : this.chipStates.entrySet()) {
-            updateChipState(entry.getKey(), entry.getValue());
-        }
-    }
 
-    private void setupFieldChips() {
-        ChipGroup chipGroup = this.binding.chipGroupFields;
-        for (FieldType field : FieldType.values()) {
-            Chip chip = new Chip(this);
-            chip.setText(field.label);
-            chip.setCheckable(false);
-            chip.setClickable(false);
-            chip.setCheckedIconVisible(false);
-            chip.setChipBackgroundColor(null);
-            chip.setBackground(getResources().getDrawable(R.drawable.chip_gradient_bg, null));
-            chip.setTextColor(-11184811);
-            this.fieldChips.put(field, chip);
-            chipGroup.addView(chip);
-        }
     }
 
     private void updateChipState(FieldType field, ChipState state) {
         this.chipStates.put(field, state);
-        Chip chip = this.fieldChips.get(field);
-        if (chip == null) {
-        }
-        chip.setChipBackgroundColor(null);
-        chip.setBackground(getResources().getDrawable(R.drawable.chip_gradient_bg, null));
-        switch (state) {
-            case EMPTY:
-                chip.setTextColor(-11184811);
-                chip.setChipIconVisible(false);
-                break;
-            case DETECTED:
-                chip.setTextColor(-3355444);
-                chip.setChipIconVisible(false);
-                break;
-            case CONFIRMED:
-                chip.setTextColor(-2838729);
-                chip.setChipIconResource(android.R.drawable.checkbox_on_background);
-                chip.setChipIconVisible(true);
-                chip.setChipIconTintResource(R.color.field_completed);
-                break;
-        }
     }
 
     private Set<FieldType> autoDetectFields(String text) {
@@ -244,8 +201,24 @@ public class ManualExtractionActivity extends BaseActivity {
         if (SERIAL_PATTERN.matcher(text).find()) {
             detected.add(FieldType.SERIAL_NUMBER);
         }
-        if ((PHONE_PATTERN.matcher(text).find() || (text.matches("(?s).*\\d{1,5}\\s+[A-Za-z].*") && text.matches("(?si).*\\b(?:St|Ave|Blvd|Dr|Rd|Ln|Way|Ct|Pl|Apt|Suite|Hwy)\\b.*"))) && text.matches("(?s).*\\d{1,5}\\s+[A-Za-z].*") && text.matches("(?si).*\\b(?:St|Ave|Blvd|Dr|Rd|Ln|Way|Ct|Pl|Apt|Suite|Hwy)\\b.*")) {
+        if (text.matches("(?s).*\\d{1,5}\\s+[A-Za-z].*") && text.matches("(?si).*\\b(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Dr(?:ive)?|Rd|Road|Ln|Lane|Way|Ct|Court|Pl(?:ace)?|Cir(?:cle)?|Hwy|Highway|Pkwy|Apt|Suite|Ste|Unit)\\b.*")) {
             detected.add(FieldType.ADDRESS);
+        }
+        if (!detected.contains(FieldType.ADDRESS) && text.matches("(?si).*\\b[A-Za-z]+(?:\\s+[A-Za-z]+)*\\s*,?\\s*\\b(?:AL|AK|AZ|AR|CA|CO|CT|DC|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\\s+\\d{5}.*")) {
+            detected.add(FieldType.ADDRESS);
+        }
+        if (detected.isEmpty() && !PHONE_PATTERN.matcher(text).find()) {
+            String cleaned = text.replaceAll("[^A-Za-z\\s'\\-]", "").trim();
+            String[] words = cleaned.split("\\s+");
+            if (words.length >= 1 && words.length <= 4 && cleaned.length() > 3) {
+                boolean allAlpha = true;
+                for (String w : words) {
+                    if (w.isEmpty() || !w.matches("[A-Za-z'\\-]+")) { allAlpha = false; break; }
+                }
+                if (allAlpha) {
+                    detected.add(FieldType.CUSTOMER_NAME);
+                }
+            }
         }
         String lower = text.toLowerCase();
         int i = 0;
@@ -451,7 +424,7 @@ public class ManualExtractionActivity extends BaseActivity {
             ChipState initial = this.initialChipStates.containsKey(field) ? this.initialChipStates.get(field) : ChipState.EMPTY;
             updateChipState(field, initial);
         }
-        this.binding.tvResultPreview.setVisibility(8);
+
         this.binding.tvHint.setText("Zoom/pan with two fingers · Draw a box to extract text");
         Toast.makeText(this, "Extractions cleared", 0).show();
     }

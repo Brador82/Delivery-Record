@@ -10,7 +10,7 @@
     <TextView
         android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="@android:color/darker_gray"
+        android:textColor="@color/warm_gray"
         android:id="@+id/tvHeaderTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -21,6 +21,6 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:src="@android:drawable/arrow_down_float"
-        android:tint="@android:color/darker_gray"
+        android:tint="@color/warm_gray"
         android:contentDescription="Expand/Collapse completed section"/>
 </LinearLayout>

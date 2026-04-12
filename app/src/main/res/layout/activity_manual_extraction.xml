@@ -74,59 +74,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
-    <LinearLayout
-        android:id="@+id/layoutPreview"
-        android:orientation="horizontal"
-        android:background="@color/dark_charcoal"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <EditText
-            android:id="@+id/tvResultPreview"
-            android:textSize="14sp"
-            android:textColor="@color/champagne"
-            android:hint="Selected text — edit before assigning"
-            android:textColorHint="#55cccccc"
-            android:background="@null"
-            android:padding="8dp"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:minLines="2"
-            android:maxLines="5"
-            android:inputType="textMultiLine|textCapSentences"
-            android:scrollbars="vertical"
-            android:gravity="top"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAssignField"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="Assign ▼"
-            android:textSize="11sp"
-            android:textColor="@color/rich_gold"
-            android:minWidth="0dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:layout_gravity="center_vertical"
-            app:strokeColor="@color/rich_gold"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
-    </LinearLayout>
-    <HorizontalScrollView
-        android:background="@color/charcoal"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:scrollbars="none"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupFields"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            app:chipSpacingHorizontal="8dp"
-            app:singleSelection="true"/>
-    </HorizontalScrollView>
+
     <LinearLayout
         android:orientation="horizontal"
         android:background="@color/rich_black"

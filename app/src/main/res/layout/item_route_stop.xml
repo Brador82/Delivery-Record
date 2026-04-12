@@ -118,7 +118,7 @@
                     android:layout_height="36dp"
                     android:src="@android:drawable/ic_menu_call"
                     android:contentDescription="Call customer"
-                    app:tint="#4caf50"/>
+                    app:tint="#d4af37"/>
                 <ImageButton
                     android:id="@+id/btnNavigate"
                     android:background="?attr/selectableItemBackgroundBorderless"
@@ -127,7 +127,7 @@
                     android:layout_marginTop="4dp"
                     android:src="@android:drawable/ic_menu_directions"
                     android:contentDescription="Navigate to this stop"
-                    app:tint="#2196f3"/>
+                    app:tint="#d4af37"/>
             </LinearLayout>
             <LinearLayout
                 android:gravity="center_vertical"

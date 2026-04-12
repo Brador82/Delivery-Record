@@ -35,6 +35,17 @@ public class OCRProcessorMLKit {
     private static final String[] APPLIANCE_TYPES = {"Washer", "Dryer", "Refrigerator", "Dishwasher", "Freezer", "Range", "Washtower", "Microwave", "Other"};
     private static final Pattern MODEL_PATTERN = Pattern.compile("(?i)(?:model|mdl|mod)\\s*(?:no\\.?|num\\.?|#|:)?\\s*[:#]?\\s*([A-Z0-9][A-Z0-9\\-]{3,19})", 2);
     private static final Pattern SERIAL_PATTERN = Pattern.compile("(?i)(?:s/n|serial|ser\\.?|sn)\\s*[:#]?\\s*([A-Z0-9][A-Z0-9\\-]{3,19})", 2);
+    private static final Pattern STREET_ADDRESS_PATTERN = Pattern.compile(
+        "^\\d{1,5}\\s+.+\\b(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Dr(?:ive)?|Rd|Road|Ln|Lane|Way|Ct|Court|Pl(?:ace)?|Cir(?:cle)?|Ter(?:r)?(?:ace)?|Pike|Hwy|Highway|Pkwy|Parkway|Apt|Suite|Ste|Unit)\\b",
+        Pattern.CASE_INSENSITIVE);
+    private static final Pattern STREET_NUMBER_START_PATTERN = Pattern.compile("^\\d{1,5}\\s+[A-Za-z]");
+    private static final Pattern CITY_STATE_ZIP_PATTERN = Pattern.compile(
+        "(?i)\\b[A-Za-z]+(?:\\s+[A-Za-z]+)*\\s*,?\\s*\\b(?:AL|AK|AZ|AR|CA|CO|CT|DC|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\\s+\\d{5}(?:-\\d{4})?\\b");
+    private static final String[] SECTION_HEADERS = {"bill to", "sold to", "deliver to", "customer", "client", "ship to", "buyer"};
+    private static final String[] NON_NAME_WORDS = {"invoice", "order", "date", "total", "bill to", "ship to", "sold to", "deliver",
+        "description", "qty", "quantity", "type:", "model", "serial", "phone", "tel", "fax",
+        "email", "page", "payment", "amount", "tax", "subtotal", "delivery", "www.", ".com", "@",
+        "thank", "terms", "due", "balance", "receipt", "attention", "po box", "p.o."};
 
     public static class OCRResult {
         public String customerName = "";
@@ -137,12 +148,12 @@ public class OCRProcessorMLKit {
         }
         result.rawText = rawText.toString();
         result.invoiceNumber = extractInvoiceNumber(allLines);
-        int billToIndex = findLineContaining(allLines, "BILL TO");
-        if (billToIndex == -1) {
-            Log.w(TAG, "BILL TO not found, using fallback extraction");
+        int sectionIndex = findSectionHeader(allLines);
+        if (sectionIndex >= 0) {
+            extractFromBillToSection(allLines, sectionIndex, result);
+        }
+        if (result.customerName.isEmpty() || result.address.isEmpty() || result.phone.isEmpty()) {
             extractWithFallback(allLines, result);
-        } else {
-            extractFromBillToSection(allLines, billToIndex, result);
         }
         result.items = extractItems(allLines);
         if (result.customerName.isEmpty()) {
@@ -161,30 +172,95 @@ public class OCRProcessorMLKit {
     }
 
     private void extractFromBillToSection(List<String> lines, int billToIndex, OCRResult result) {
+        List<String> sectionLines = new ArrayList<>();
+        String headerLine = lines.get(billToIndex);
+        String afterHeader = headerLine.replaceFirst("(?i).*(?:bill\\s*to|sold\\s*to|deliver\\s*to|customer|client|ship\\s*to|buyer)\\s*[:.]?\\s*", "").trim();
+        if (!afterHeader.isEmpty() && !afterHeader.equalsIgnoreCase(headerLine)) {
+            sectionLines.add(afterHeader);
+        }
         for (int i = billToIndex + 1; i < Math.min(billToIndex + 10, lines.size()); i++) {
             String line = lines.get(i).trim();
-            if (!line.isEmpty()) {
-                if (result.customerName.isEmpty() && line.toLowerCase().startsWith("name:")) {
-                    result.customerName = extractCustomerName(line);
-                } else if (result.address.isEmpty() && line.toLowerCase().startsWith("address:")) {
-                    result.address = extractAddress(line);
-                } else if (result.phone.isEmpty() && (line.toLowerCase().contains("phone") || PHONE_PATTERN.matcher(line).find())) {
-                    result.phone = extractPhone(line);
-                }
+            if (line.isEmpty()) continue;
+            String lower = line.toLowerCase();
+            if (lower.contains("ship to") || lower.contains("deliver to") ||
+                lower.contains("description") || lower.contains("qty") ||
+                lower.contains("quantity") || lower.contains("type:") ||
+                lower.contains("total") || lower.contains("amount") ||
+                lower.contains("item") || lower.contains("subtotal")) break;
+            sectionLines.add(line);
+        }
+        for (String line : sectionLines) {
+            String lower = line.toLowerCase();
+            if (result.customerName.isEmpty() && lower.startsWith("name:")) {
+                result.customerName = extractCustomerName(line);
+            }
+            if (result.address.isEmpty() && lower.startsWith("address:")) {
+                result.address = extractAddress(line);
+            }
+            if (result.phone.isEmpty() && (lower.startsWith("phone:") || lower.startsWith("tel:") || PHONE_PATTERN.matcher(line).find())) {
+                result.phone = extractPhone(line);
+            }
+        }
+        for (String line : sectionLines) {
+            if (!result.phone.isEmpty() && PHONE_PATTERN.matcher(line).find()) continue;
+            String stripped = stripFieldLabel(line);
+            if (result.address.isEmpty() && isStreetAddress(stripped)) {
+                result.address = extractAddress(stripped);
+            } else if (!result.address.isEmpty() && !hasZipCode(result.address) && isCityStateZip(stripped)) {
+                result.address = result.address + ", " + stripped;
+            } else if (result.customerName.isEmpty() && isLikelyPersonName(stripped)) {
+                result.customerName = extractCustomerName(stripped);
             }
         }
     }
 
     private void extractWithFallback(List<String> lines, OCRResult result) {
         for (String line : lines) {
-            if (result.customerName.isEmpty() && line.toLowerCase().startsWith("name:")) {
+            String lower = line.toLowerCase();
+            if (result.customerName.isEmpty() && lower.startsWith("name:")) {
                 result.customerName = extractCustomerName(line);
             }
-            if (result.address.isEmpty() && (line.toLowerCase().startsWith("address:") || (line.matches(".*\\d+\\s+[A-Z].*") && line.length() > 10))) {
+            if (result.address.isEmpty() && lower.startsWith("address:")) {
                 result.address = extractAddress(line);
             }
             if (result.phone.isEmpty() && PHONE_PATTERN.matcher(line).find()) {
                 result.phone = extractPhone(line);
+            }
+        }
+        if (result.address.isEmpty()) {
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+                if (isStreetAddress(line)) {
+                    result.address = extractAddress(line);
+                    if (i + 1 < lines.size() && isCityStateZip(lines.get(i + 1))) {
+                        result.address = result.address + ", " + lines.get(i + 1).trim();
+                    }
+                    Log.d(TAG, "Fallback found address: " + result.address);
+                    break;
+                }
+            }
+        }
+        if (result.address.isEmpty()) {
+            for (int i = 0; i < lines.size(); i++) {
+                if (isCityStateZip(lines.get(i))) {
+                    result.address = lines.get(i).trim();
+                    if (i > 0 && STREET_NUMBER_START_PATTERN.matcher(lines.get(i - 1)).find()) {
+                        result.address = lines.get(i - 1).trim() + ", " + result.address;
+                    }
+                    Log.d(TAG, "Fallback found address via city/state/zip: " + result.address);
+                    break;
+                }
+            }
+        }
+        if (result.customerName.isEmpty()) {
+            for (String line : lines) {
+                String stripped = stripFieldLabel(line);
+                if (isLikelyPersonName(stripped) && !stripped.equals(result.address) &&
+                        !result.address.contains(stripped)) {
+                    result.customerName = extractCustomerName(stripped);
+                    Log.d(TAG, "Fallback found name: " + result.customerName);
+                    break;
+                }
             }
         }
     }
@@ -395,6 +471,52 @@ public class OCRProcessorMLKit {
             }
         }
         return false;
+    }
+
+    private boolean isStreetAddress(String line) {
+        if (line.isEmpty() || !Character.isDigit(line.charAt(0))) return false;
+        return STREET_ADDRESS_PATTERN.matcher(line).find() ||
+               (STREET_NUMBER_START_PATTERN.matcher(line).find() && line.length() > 10);
+    }
+
+    private boolean isCityStateZip(String line) {
+        return CITY_STATE_ZIP_PATTERN.matcher(line).find();
+    }
+
+    private boolean hasZipCode(String text) {
+        return ZIP_CODE_PATTERN.matcher(text).find();
+    }
+
+    private boolean isLikelyPersonName(String line) {
+        if (line.isEmpty() || Character.isDigit(line.charAt(0))) return false;
+        if (PHONE_PATTERN.matcher(line).find()) return false;
+        if (isCityStateZip(line)) return false;
+        if (isStreetAddress(line)) return false;
+        String lower = line.toLowerCase();
+        for (String nope : NON_NAME_WORDS) {
+            if (lower.contains(nope)) return false;
+        }
+        String cleaned = line.replaceAll("[^A-Za-z\\s'\\-]", "").trim();
+        String[] words = cleaned.split("\\s+");
+        if (words.length < 1 || words.length > 5) return false;
+        if (cleaned.isEmpty()) return false;
+        int alphaCount = 0;
+        for (char c : line.toCharArray()) {
+            if (Character.isLetter(c) || c == ' ' || c == '\'' || c == '-') alphaCount++;
+        }
+        return alphaCount > line.length() * 0.7;
+    }
+
+    private String stripFieldLabel(String line) {
+        return line.replaceFirst("(?i)^(?:name|customer|address|addr|phone|tel|fax|email|sold to|bill to|deliver(?:y)?\\s*(?:to|address)?|ship to)\\s*[:.]?\\s*", "").trim();
+    }
+
+    private int findSectionHeader(List<String> lines) {
+        for (String header : SECTION_HEADERS) {
+            int idx = findLineContaining(lines, header);
+            if (idx >= 0) return idx;
+        }
+        return -1;
     }
 
     private int findLineContaining(List<String> lines, String searchText) {

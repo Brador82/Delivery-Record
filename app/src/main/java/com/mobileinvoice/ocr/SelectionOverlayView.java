@@ -56,6 +56,10 @@ public class SelectionOverlayView extends View {
     private OnTextSelectedListener textListener;
     private List<PaddleOCREngine.TextRegion> textRegions;
     private List<PaddleOCREngine.TextRegion> charRegions;
+    private PaddleOCREngine.TextRegion tapHighlightedRegion;
+    private PaddleOCREngine.TextRegion wordRangeStartRegion;
+    private PaddleOCREngine.TextRegion wordRangeEndRegion;
+    private List<PaddleOCREngine.TextRegion> wordRangeHighlighted;
 
     public interface OnSelectionCompleteListener {
         void onSelectionComplete(Rect bitmapRect);
@@ -216,12 +220,19 @@ public class SelectionOverlayView extends View {
                     SelectionOverlayView.this.isDragging = true;
                     SelectionOverlayView.this.invalidate();
                 } else if (hit == null) {
-                    SelectionOverlayView.this.isLongPressSelecting = true;
-                    SelectionOverlayView.this.selectionStart = touchPoint;
-                    SelectionOverlayView.this.selectionRect = new RectF(touchPoint.x, touchPoint.y, touchPoint.x,
-                            touchPoint.y);
-                    SelectionOverlayView.this.performHapticFeedback(0);
-                    SelectionOverlayView.this.invalidate();
+                    PaddleOCREngine.TextRegion startWord = SelectionOverlayView.this.findNearestTextRegion(touchPoint);
+                    if (startWord != null && !SelectionOverlayView.this.textRegions.isEmpty()) {
+                        SelectionOverlayView.this.tapHighlightedRegion = null;
+                        SelectionOverlayView.this.isLongPressSelecting = true;
+                        SelectionOverlayView.this.wordRangeStartRegion = startWord;
+                        SelectionOverlayView.this.wordRangeEndRegion = startWord;
+                        SelectionOverlayView.this.wordRangeHighlighted = new ArrayList<>();
+                        SelectionOverlayView.this.wordRangeHighlighted.add(startWord);
+                        SelectionOverlayView.this.currentDragX = touchPoint.x;
+                        SelectionOverlayView.this.currentDragY = touchPoint.y;
+                        SelectionOverlayView.this.performHapticFeedback(0);
+                        SelectionOverlayView.this.invalidate();
+                    }
                 }
             }
 
@@ -232,6 +243,9 @@ public class SelectionOverlayView extends View {
                 PointF touchPoint = new PointF(e.getX(), e.getY());
                 if (SelectionOverlayView.this.textListener != null && !SelectionOverlayView.this.textRegions.isEmpty()
                         && (tappedRegion = SelectionOverlayView.this.findTextRegionAt(touchPoint)) != null) {
+                    SelectionOverlayView.this.tapHighlightedRegion = tappedRegion;
+                    SelectionOverlayView.this.wordRangeHighlighted = null;
+                    SelectionOverlayView.this.invalidate();
                     SelectionOverlayView.this.textListener.onTextSelected(tappedRegion.text(), tappedRegion.boundingBox());
                     return true;
                 }
@@ -322,6 +336,10 @@ public class SelectionOverlayView extends View {
         this.completedSelections.clear();
         this.selectionRect = null;
         this.selectionStart = null;
+        this.tapHighlightedRegion = null;
+        this.wordRangeHighlighted = null;
+        this.wordRangeStartRegion = null;
+        this.wordRangeEndRegion = null;
         invalidate();
     }
 
@@ -587,33 +605,37 @@ public class SelectionOverlayView extends View {
         if (this.isLongPressSelecting) {
             switch (event.getActionMasked()) {
                 case 2:
-                    if (this.selectionRect != null) {
+                    if (this.wordRangeStartRegion != null) {
                         this.currentDragX = event.getX();
                         this.currentDragY = event.getY();
-                        this.selectionRect.right = event.getX();
-                        this.selectionRect.bottom = event.getY();
+                        PaddleOCREngine.TextRegion endWord = findNearestTextRegion(new PointF(event.getX(), event.getY()));
+                        if (endWord != null) {
+                            this.wordRangeEndRegion = endWord;
+                        }
+                        this.wordRangeHighlighted = computeWordRange(this.wordRangeStartRegion, this.wordRangeEndRegion);
                         invalidate();
                     }
                     return true;
                 case 1:
                 case 3:
                     this.isLongPressSelecting = false;
-                    if (this.selectionRect != null) {
-                        RectF normalized = new RectF(
-                                Math.min(this.selectionRect.left, this.selectionRect.right),
-                                Math.min(this.selectionRect.top, this.selectionRect.bottom),
-                                Math.max(this.selectionRect.left, this.selectionRect.right),
-                                Math.max(this.selectionRect.top, this.selectionRect.bottom));
-                        String gathered = gatherTextFromScreenRect(normalized);
-                        Rect bitmapRect = screenRectToBitmapRect(normalized);
-                        this.selectionRect = null;
+                    if (this.wordRangeHighlighted != null && !this.wordRangeHighlighted.isEmpty()
+                            && this.textListener != null) {
+                        String gathered = joinWordRegions(this.wordRangeHighlighted);
+                        Rect bitmapRect = unionBitmapRects(this.wordRangeHighlighted);
+                        this.wordRangeStartRegion = null;
+                        this.wordRangeEndRegion = null;
+                        this.currentDragX = 0;
+                        this.currentDragY = 0;
                         invalidate();
-                        // Always fire the listener — even with empty text so the
-                        // activity can run an OCR fallback on the selected region.
-                        if (this.textListener != null) {
-                            this.textListener.onTextSelected(
-                                    gathered != null ? gathered : "", bitmapRect);
-                        }
+                        this.textListener.onTextSelected(gathered, bitmapRect);
+                    } else {
+                        this.wordRangeStartRegion = null;
+                        this.wordRangeEndRegion = null;
+                        this.wordRangeHighlighted = null;
+                        this.currentDragX = 0;
+                        this.currentDragY = 0;
+                        invalidate();
                     }
                     return true;
             }
@@ -912,10 +934,39 @@ public class SelectionOverlayView extends View {
             } else {
                 canvas.drawRect(normalized, this.selectionFillPaint);
                 canvas.drawRect(normalized, this.selectionPaint);
-                // Draw offset crosshair cursor above the drag thumb
-                if (this.isLongPressSelecting && this.currentDragX > 0) {
-                    drawDragCursor(canvas, this.currentDragX, this.currentDragY);
+            }
+        }
+        // Draw tap highlight (single tapped word)
+        if (this.tapHighlightedRegion != null && this.tapHighlightedRegion.boundingBox() != null) {
+            Paint tapFill = new Paint(Paint.ANTI_ALIAS_FLAG);
+            tapFill.setColor(0x50FFD700);
+            tapFill.setStyle(Paint.Style.FILL);
+            Paint tapStroke = new Paint(Paint.ANTI_ALIAS_FLAG);
+            tapStroke.setColor(0xFFFFD700);
+            tapStroke.setStyle(Paint.Style.STROKE);
+            tapStroke.setStrokeWidth(2.5f);
+            RectF tapScreenRect = bitmapRectToScreenRect(this.tapHighlightedRegion.boundingBox());
+            canvas.drawRect(tapScreenRect, tapFill);
+            canvas.drawRect(tapScreenRect, tapStroke);
+        }
+        // Draw word range highlights (long-press drag selection)
+        if (this.wordRangeHighlighted != null && !this.wordRangeHighlighted.isEmpty()) {
+            Paint wordFill = new Paint(Paint.ANTI_ALIAS_FLAG);
+            wordFill.setColor(0x60FFD700);
+            wordFill.setStyle(Paint.Style.FILL);
+            Paint wordStroke = new Paint(Paint.ANTI_ALIAS_FLAG);
+            wordStroke.setColor(0xFFFFD700);
+            wordStroke.setStyle(Paint.Style.STROKE);
+            wordStroke.setStrokeWidth(2.5f);
+            for (PaddleOCREngine.TextRegion region : this.wordRangeHighlighted) {
+                if (region.boundingBox() != null) {
+                    RectF screenRect = bitmapRectToScreenRect(region.boundingBox());
+                    canvas.drawRect(screenRect, wordFill);
+                    canvas.drawRect(screenRect, wordStroke);
                 }
+            }
+            if (this.isLongPressSelecting && this.currentDragX > 0) {
+                drawDragCursor(canvas, this.currentDragX, this.currentDragY);
             }
         }
     }
@@ -964,5 +1015,100 @@ public class SelectionOverlayView extends View {
         stemP.setStyle(Paint.Style.STROKE);
         stemP.setPathEffect(new DashPathEffect(new float[] { density * 5f, density * 3f }, 0f));
         canvas.drawLine(cx, cy + radius, touchX, touchY, stemP);
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public PaddleOCREngine.TextRegion findNearestTextRegion(PointF screenPoint) {
+        if (this.imageBitmap == null || this.textRegions.isEmpty()) {
+            return null;
+        }
+        Matrix inverse = new Matrix();
+        this.imageMatrix.invert(inverse);
+        float[] pt = { screenPoint.x, screenPoint.y };
+        inverse.mapPoints(pt);
+        float bx = pt[0];
+        float by = pt[1];
+        // Try exact hit first
+        for (PaddleOCREngine.TextRegion region : this.textRegions) {
+            if (region.boundingBox() != null && region.boundingBox().contains((int) bx, (int) by)) {
+                return region;
+            }
+        }
+        // Fall back to nearest by center distance
+        PaddleOCREngine.TextRegion nearest = null;
+        float minDist = Float.MAX_VALUE;
+        for (PaddleOCREngine.TextRegion region : this.textRegions) {
+            if (region.boundingBox() != null) {
+                float dx = region.boundingBox().centerX() - bx;
+                float dy = region.boundingBox().centerY() - by;
+                float dist = dx * dx + dy * dy;
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = region;
+                }
+            }
+        }
+        return nearest;
+    }
+
+    private List<PaddleOCREngine.TextRegion> computeWordRange(
+            PaddleOCREngine.TextRegion start, PaddleOCREngine.TextRegion end) {
+        List<PaddleOCREngine.TextRegion> sorted = new ArrayList<>(this.textRegions);
+        Collections.sort(sorted, new Comparator<PaddleOCREngine.TextRegion>() {
+            @Override
+            public int compare(PaddleOCREngine.TextRegion a, PaddleOCREngine.TextRegion b) {
+                if (a.boundingBox() == null || b.boundingBox() == null) return 0;
+                int avgH = (a.boundingBox().height() + b.boundingBox().height()) / 2;
+                int rowDiff = a.boundingBox().centerY() - b.boundingBox().centerY();
+                if (Math.abs(rowDiff) > avgH / 2) {
+                    return rowDiff;
+                }
+                return a.boundingBox().centerX() - b.boundingBox().centerX();
+            }
+        });
+        int startIdx = sorted.indexOf(start);
+        int endIdx = sorted.indexOf(end);
+        if (startIdx == -1 && endIdx == -1) {
+            return new ArrayList<>();
+        }
+        if (startIdx == -1) startIdx = endIdx;
+        if (endIdx == -1) endIdx = startIdx;
+        int from = Math.min(startIdx, endIdx);
+        int to = Math.max(startIdx, endIdx);
+        return new ArrayList<>(sorted.subList(from, to + 1));
+    }
+
+    private String joinWordRegions(List<PaddleOCREngine.TextRegion> regions) {
+        StringBuilder sb = new StringBuilder();
+        PaddleOCREngine.TextRegion prev = null;
+        for (PaddleOCREngine.TextRegion region : regions) {
+            if (region.boundingBox() == null) continue;
+            if (prev != null && prev.boundingBox() != null) {
+                int avgH = (region.boundingBox().height() + prev.boundingBox().height()) / 2;
+                int rowDiff = Math.abs(region.boundingBox().centerY() - prev.boundingBox().centerY());
+                if (rowDiff > avgH / 2) {
+                    sb.append("\n");
+                } else {
+                    sb.append(" ");
+                }
+            }
+            sb.append(region.text());
+            prev = region;
+        }
+        return sb.toString();
+    }
+
+    private Rect unionBitmapRects(List<PaddleOCREngine.TextRegion> regions) {
+        Rect union = null;
+        for (PaddleOCREngine.TextRegion r : regions) {
+            if (r.boundingBox() != null) {
+                if (union == null) {
+                    union = new Rect(r.boundingBox());
+                } else {
+                    union.union(r.boundingBox());
+                }
+            }
+        }
+        return union != null ? union : new Rect(0, 0, 0, 0);
     }
 }

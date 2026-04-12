@@ -17,7 +17,7 @@
             android:paddingBottom="6dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="��  PROFILE"
+            android:text="▸  PROFILE"
             android:letterSpacing="0.08"/>
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -96,7 +96,7 @@
             android:paddingBottom="6dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="��  ROUTE &amp; DELIVERY"
+            android:text="▸  ROUTE &amp; DELIVERY"
             android:letterSpacing="0.08"/>
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -185,7 +185,7 @@
             android:paddingBottom="6dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="��  APPEARANCE"
+            android:text="▸  APPEARANCE"
             android:letterSpacing="0.08"/>
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -322,7 +322,7 @@
             android:paddingBottom="6dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="��  STORAGE &amp; EXPORT"
+            android:text="▸  STORAGE &amp; EXPORT"
             android:letterSpacing="0.08"/>
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
