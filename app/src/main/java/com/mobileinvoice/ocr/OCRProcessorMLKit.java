@@ -54,34 +54,28 @@ public class OCRProcessorMLKit {
     private static final Pattern BARE_MODEL_PATTERN = Pattern.compile("\\b(?!A4L)([A-Z]{2,5}\\d{1,7}[A-Z0-9]{0,7})\\b");
     // Street address: starts with house number + street suffix
     private static final Pattern STREET_ADDRESS_PATTERN = Pattern.compile(
-        "^\\d{1,5}\\s+.+\\b(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Dr(?:ive)?|Rd|Road|Ln|Lane|Way|Ct|Court|Pl(?:ace)?|Cir(?:cle)?|Ter(?:r)?(?:ace)?|Pike|Hwy|Highway|Pkwy|Parkway|Apt|Suite|Ste|Unit)\\b",
-        Pattern.CASE_INSENSITIVE);
+            "^\\d{1,5}\\s+.+\\b(?:St(?:reet)?|Ave(?:nue)?|Blvd|Boulevard|Dr(?:ive)?|Rd|Road|Ln|Lane|Way|Ct|Court|Pl(?:ace)?|Cir(?:cle)?|Ter(?:r)?(?:ace)?|Pike|Hwy|Highway|Pkwy|Parkway|Apt|Suite|Ste|Unit)\\b",
+            Pattern.CASE_INSENSITIVE);
     private static final Pattern STREET_NUMBER_START_PATTERN = Pattern.compile("^\\d{1,5}\\s+[A-Za-z]");
     // City, State ZIP
     private static final Pattern CITY_STATE_ZIP_PATTERN = Pattern.compile(
-        "(?i)\\b[A-Za-z]+(?:\\s+[A-Za-z]+)*\\s*,?\\s*\\b(?:AL|AK|AZ|AR|CA|CO|CT|DC|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\\s+\\d{5}(?:-\\d{4})?\\b");
-    private static final String[] NON_NAME_WORDS = {"invoice", "order", "date", "total", "bill to", "ship to", "sold to", "deliver",
-        "description", "qty", "quantity", "type:", "model", "serial", "phone", "tel", "fax",
-        "email", "page", "payment", "amount", "tax", "subtotal", "delivery", "www.", ".com", "@",
-        "thank", "terms", "due", "balance", "receipt", "attention", "po box", "p.o."};
+            "(?i)\\b[A-Za-z]+(?:\\s+[A-Za-z]+)*\\s*,?\\s*\\b(?:AL|AK|AZ|AR|CA|CO|CT|DC|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\\s+\\d{5}(?:-\\d{4})?\\b");
+    private static final String[] NON_NAME_WORDS = { "invoice", "order", "date", "total", "bill to", "ship to",
+            "sold to", "deliver", "description", "qty", "quantity", "type:", "model", "serial", "phone", "tel", "fax",
+            "email", "page", "payment", "amount", "tax", "subtotal", "delivery", "www.", ".com", "@", "thank", "terms",
+            "due", "balance", "receipt", "attention", "po box", "p.o." };
 
     // Known appliance brands for make extraction
-    private static final String[] KNOWN_BRANDS = {
-            "LG", "GE", "Samsung", "Whirlpool", "Maytag", "Frigidaire", "Bosch",
-            "KitchenAid", "Amana", "Kenmore", "Electrolux", "Hotpoint", "Haier",
-            "Fisher & Paykel", "Fisher and Paykel", "Speed Queen", "Miele",
-            "Thermador", "Viking", "Sub-Zero", "Sub Zero", "Wolf", "Dacor",
-            "Jenn-Air", "JennAir", "Cafe", "Monogram", "Profile", "Crosley",
-            "Danby", "Magic Chef", "Insignia", "Hisense", "Midea", "Beko",
-            "Bertazzoni", "BlueStar", "DERA"
-    };
+    private static final String[] KNOWN_BRANDS = { "LG", "GE", "Samsung", "Whirlpool", "Maytag", "Frigidaire", "Bosch",
+            "KitchenAid", "Amana", "Kenmore", "Electrolux", "Hotpoint", "Haier", "Fisher & Paykel", "Fisher and Paykel",
+            "Speed Queen", "Miele", "Thermador", "Viking", "Sub-Zero", "Sub Zero", "Wolf", "Dacor", "Jenn-Air",
+            "JennAir", "Cafe", "Monogram", "Profile", "Crosley", "Danby", "Magic Chef", "Insignia", "Hisense", "Midea",
+            "Beko", "Bertazzoni", "BlueStar", "DERA" };
 
     // Company / store header keywords — phones near these lines are store phones
-    private static final String[] STORE_KEYWORDS = {
-            "appliances", "electronics", "furniture", "4 less", " inc", " llc", " corp",
-            "showroom", "warehouse", "salesperson", "store", "a4l", "fax", "toll free",
-            "customer service", "office"
-    };
+    private static final String[] STORE_KEYWORDS = { "appliances", "electronics", "furniture", "4 less", " inc", " llc",
+            " corp", "showroom", "warehouse", "salesperson", "store", "a4l", "fax", "toll free", "customer service",
+            "office" };
 
     public static class OCRResult {
         public String customerName = "";
@@ -231,9 +225,9 @@ public class OCRProcessorMLKit {
 
     /**
      * Collects the digit-strings of every phone found in the company/store header
-     * block so they can be excluded from customer-phone extraction.
-     * Heuristic: any phone on a line that contains a store keyword, or any phone
-     * in the first few lines before the BILL-TO block.
+     * block so they can be excluded from customer-phone extraction. Heuristic: any
+     * phone on a line that contains a store keyword, or any phone in the first few
+     * lines before the BILL-TO block.
      */
     private Set<String> collectStorePhones(List<String> lines) {
         Set<String> storeDigits = new LinkedHashSet<>();
@@ -274,8 +268,7 @@ public class OCRProcessorMLKit {
     /** Extract a phone string from a raw match, skipping store digits. */
     private String formatPhone(String digits) {
         if (digits.length() == 10) {
-            return String.format("(%s) %s-%s",
-                    digits.substring(0, 3), digits.substring(3, 6), digits.substring(6));
+            return String.format("(%s) %s-%s", digits.substring(0, 3), digits.substring(3, 6), digits.substring(6));
         }
         return digits;
     }
@@ -285,8 +278,8 @@ public class OCRProcessorMLKit {
      * Sets result.phone if empty, result.altPhone if a second distinct number
      * found.
      */
-    private void assignPhones(List<String> lines, int windowStart, int windowEnd,
-            Set<String> storeDigits, OCRResult result) {
+    private void assignPhones(List<String> lines, int windowStart, int windowEnd, Set<String> storeDigits,
+            OCRResult result) {
         List<String> found = new ArrayList<>();
         for (int i = windowStart; i < windowEnd; i++) {
             String line = lines.get(i);
@@ -317,8 +310,7 @@ public class OCRProcessorMLKit {
                 flags.add("INSTALL");
             if (lower.matches(".*\\bhaul\\s*(?:away)?\\b.*"))
                 flags.add("HAUL AWAY");
-            if (lower.matches(".*\\bservice\\s*(?:call|fee)?\\b.*")
-                    && !lower.contains("customer service"))
+            if (lower.matches(".*\\bservice\\s*(?:call|fee)?\\b.*") && !lower.contains("customer service"))
                 flags.add("SERVICE");
         }
         StringBuilder sb = new StringBuilder();
@@ -330,27 +322,29 @@ public class OCRProcessorMLKit {
         return sb.toString();
     }
 
-    private void extractFromBillToSection(List<String> lines, int billToIndex,
-            Set<String> storePhoneDigits, OCRResult result) {
+    private void extractFromBillToSection(List<String> lines, int billToIndex, Set<String> storePhoneDigits,
+            OCRResult result) {
         int windowStart = Math.max(0, billToIndex - 10);
         int windowEnd = Math.min(lines.size(), billToIndex + 15);
 
         // Collect section lines (after marker, up to next section boundary)
         List<String> sectionLines = new ArrayList<>();
         String headerLine = lines.get(billToIndex);
-        String afterHeader = headerLine.replaceFirst("(?i).*(?:bill\\s*to|sold\\s*to|deliver\\s*to|customer|client|ship\\s*to|buyer|delivery\\s*address)\\s*[:.]?\\s*", "").trim();
+        String afterHeader = headerLine.replaceFirst(
+                "(?i).*(?:bill\\s*to|sold\\s*to|deliver\\s*to|customer|client|ship\\s*to|buyer|delivery\\s*address)\\s*[:.]?\\s*",
+                "").trim();
         if (!afterHeader.isEmpty() && !afterHeader.equalsIgnoreCase(headerLine)) {
             sectionLines.add(afterHeader);
         }
         for (int i = billToIndex + 1; i < Math.min(billToIndex + 12, lines.size()); i++) {
             String line = lines.get(i).trim();
-            if (line.isEmpty()) continue;
+            if (line.isEmpty())
+                continue;
             String lower = line.toLowerCase();
-            if (lower.contains("ship to") || lower.contains("deliver to") ||
-                lower.contains("description") || lower.contains("qty") ||
-                lower.contains("quantity") || lower.contains("type:") ||
-                lower.contains("total") || lower.contains("amount") ||
-                lower.contains("subtotal")) break;
+            if (lower.contains("ship to") || lower.contains("deliver to") || lower.contains("description")
+                    || lower.contains("qty") || lower.contains("quantity") || lower.contains("type:")
+                    || lower.contains("total") || lower.contains("amount") || lower.contains("subtotal"))
+                break;
             sectionLines.add(line);
         }
 
@@ -368,7 +362,8 @@ public class OCRProcessorMLKit {
         // Pass 2: heuristic detection for unlabeled fields
         for (int i = 0; i < sectionLines.size(); i++) {
             String line = sectionLines.get(i);
-            if (PHONE_PATTERN.matcher(line).find()) continue;
+            if (PHONE_PATTERN.matcher(line).find())
+                continue;
             String stripped = stripFieldLabel(line);
             if (result.address.isEmpty() && isStreetAddress(stripped)) {
                 result.address = extractAddress(stripped);
@@ -431,8 +426,8 @@ public class OCRProcessorMLKit {
         if (result.customerName.isEmpty()) {
             for (String line : lines) {
                 String stripped = stripFieldLabel(line);
-                if (isLikelyPersonName(stripped) && !stripped.equals(result.address) &&
-                        !result.address.contains(stripped)) {
+                if (isLikelyPersonName(stripped) && !stripped.equals(result.address)
+                        && !result.address.contains(stripped)) {
                     result.customerName = toTitleCase(stripped);
                     Log.d(TAG, "Fallback found name: " + result.customerName);
                     break;
@@ -447,14 +442,17 @@ public class OCRProcessorMLKit {
         String name = line.replaceFirst("(?i)^name:\\s*", "");
         // Remove ID / Salesperson annotations via pattern
         name = ID_PATTERN.matcher(name).replaceAll("");
-        // Truncate at any labeled field boundary (Phone:, Address:, Email:, Cell:, Fax:)
+        // Truncate at any labeled field boundary (Phone:, Address:, Email:, Cell:,
+        // Fax:)
         name = name.replaceFirst("(?i)\\s+(phone|cell|address|email|fax|zip|city|state)\\s*:.*", "");
         // Truncate at email address if still present
         Matcher emailM = EMAIL_PATTERN.matcher(name);
-        if (emailM.find()) name = name.substring(0, emailM.start());
+        if (emailM.find())
+            name = name.substring(0, emailM.start());
         // Truncate at phone number if still present
         Matcher phoneM = PHONE_PATTERN.matcher(name);
-        if (phoneM.find()) name = name.substring(0, phoneM.start());
+        if (phoneM.find())
+            name = name.substring(0, phoneM.start());
         // Fallback: if an opening paren remains (OCR split the closing paren onto
         // the next line so the pattern couldn't match), strip from '(' onward
         int parenIdx = name.indexOf('(');
@@ -462,8 +460,7 @@ public class OCRProcessorMLKit {
             name = name.substring(0, parenIdx);
         }
         String name2 = splitConcatenatedName(
-                name.replaceAll("\\s*/\\s*", StringUtils.SPACE)
-                    .replaceAll("\\s+", StringUtils.SPACE).trim());
+                name.replaceAll("\\s*/\\s*", StringUtils.SPACE).replaceAll("\\s+", StringUtils.SPACE).trim());
         if (!name2.isEmpty()) {
             return toTitleCase(name2);
         }
@@ -616,8 +613,8 @@ public class OCRProcessorMLKit {
             for (int i2 = 0; i2 < lines.size(); i2++) {
                 String line2 = lines.get(i2);
                 for (String appliance : APPLIANCE_TYPES) {
-                    if (!appliance.equals("Other") && line2.toLowerCase()
-                            .matches(".*\\b" + appliance.toLowerCase() + "\\b.*")) {
+                    if (!appliance.equals("Other")
+                            && line2.toLowerCase().matches(".*\\b" + appliance.toLowerCase() + "\\b.*")) {
                         boolean exists2 = false;
                         Iterator<DeliveryItem> it2 = foundItems.iterator();
                         while (true) {
@@ -723,8 +720,7 @@ public class OCRProcessorMLKit {
                 flags.add("INSTALL");
             if (lower.matches(".*\\bhaul\\s*(?:away)?\\b.*"))
                 flags.add("HAUL AWAY");
-            if (lower.matches(".*\\bservice\\s*(?:call|fee)?\\b.*")
-                    && !lower.contains("customer service"))
+            if (lower.matches(".*\\bservice\\s*(?:call|fee)?\\b.*") && !lower.contains("customer service"))
                 flags.add("SERVICE");
         }
         StringBuilder sb = new StringBuilder();
@@ -759,7 +755,8 @@ public class OCRProcessorMLKit {
         String[] markers = { "BILL TO", "SHIP TO", "DELIVER TO", "SOLD TO", "CUSTOMER:", "DELIVERY ADDRESS" };
         for (String marker : markers) {
             int idx = findLineContaining(lines, marker);
-            if (idx >= 0) return idx;
+            if (idx >= 0)
+                return idx;
         }
         return -1;
     }
@@ -767,16 +764,18 @@ public class OCRProcessorMLKit {
     private boolean isStoreHeaderLine(String line) {
         String lower = line.toLowerCase();
         for (String kw : STORE_KEYWORDS) {
-            if (lower.contains(kw)) return true;
+            if (lower.contains(kw))
+                return true;
         }
         return false;
     }
 
     /** True if the line looks like a street address with a recognizable suffix. */
     private boolean isStreetAddress(String line) {
-        if (line.isEmpty() || !Character.isDigit(line.charAt(0))) return false;
-        return STREET_ADDRESS_PATTERN.matcher(line).find() ||
-               (STREET_NUMBER_START_PATTERN.matcher(line).find() && line.length() > 10);
+        if (line.isEmpty() || !Character.isDigit(line.charAt(0)))
+            return false;
+        return STREET_ADDRESS_PATTERN.matcher(line).find()
+                || (STREET_NUMBER_START_PATTERN.matcher(line).find() && line.length() > 10);
     }
 
     private boolean isCityStateZip(String line) {
@@ -787,30 +786,44 @@ public class OCRProcessorMLKit {
         return ZIP_CODE_PATTERN.matcher(text).find();
     }
 
-    /** True if the line looks like a person name: mostly alpha, 1-5 words, no numbers/addresses/business terms. */
+    /**
+     * True if the line looks like a person name: mostly alpha, 1-5 words, no
+     * numbers/addresses/business terms.
+     */
     private boolean isLikelyPersonName(String line) {
-        if (line.isEmpty() || Character.isDigit(line.charAt(0))) return false;
-        if (PHONE_PATTERN.matcher(line).find()) return false;
-        if (isCityStateZip(line)) return false;
-        if (isStreetAddress(line)) return false;
-        if (isStoreHeaderLine(line)) return false;
+        if (line.isEmpty() || Character.isDigit(line.charAt(0)))
+            return false;
+        if (PHONE_PATTERN.matcher(line).find())
+            return false;
+        if (isCityStateZip(line))
+            return false;
+        if (isStreetAddress(line))
+            return false;
+        if (isStoreHeaderLine(line))
+            return false;
         String lower = line.toLowerCase();
         for (String nope : NON_NAME_WORDS) {
-            if (lower.contains(nope)) return false;
+            if (lower.contains(nope))
+                return false;
         }
         String cleaned = line.replaceAll("[^A-Za-z\\s'\\-]", "").trim();
         String[] words = cleaned.split("\\s+");
-        if (words.length < 1 || words.length > 5) return false;
-        if (cleaned.isEmpty()) return false;
+        if (words.length < 1 || words.length > 5)
+            return false;
+        if (cleaned.isEmpty())
+            return false;
         int alphaCount = 0;
         for (char c : line.toCharArray()) {
-            if (Character.isLetter(c) || c == ' ' || c == '\'' || c == '-') alphaCount++;
+            if (Character.isLetter(c) || c == ' ' || c == '\'' || c == '-')
+                alphaCount++;
         }
         return alphaCount > line.length() * 0.7;
     }
 
     private String stripFieldLabel(String line) {
-        return line.replaceFirst("(?i)^(?:name|customer|address|addr|phone|tel|fax|email|sold to|bill to|deliver(?:y)?\\s*(?:to|address)?|ship to)\\s*[:.]?\\s*", "").trim();
+        return line.replaceFirst(
+                "(?i)^(?:name|customer|address|addr|phone|tel|fax|email|sold to|bill to|deliver(?:y)?\\s*(?:to|address)?|ship to)\\s*[:.]?\\s*",
+                "").trim();
     }
 
     private int findLineContaining(List<String> lines, String searchText) {
